@@ -1,0 +1,26 @@
+version: "3"
+
+services:
+  fcommerce_db:
+    image: postgres:14.5
+    container_name: fcommerce_db
+    restart: unless-stopped
+    env_file:
+      - dev.env
+    user: "0:0"
+    ports:
+      - "5435:5432"
+    volumes:
+      - /home/docker-storage/fcommerce_db:/var/lib/postgresql/data
+
+  fcommerce_pgadmin:
+    image: dpage/pgadmin4
+    container_name: fcommerce_pgadmin
+    restart: unless-stopped
+    env_file:
+      - dev.env
+    user: "0:0"
+    ports:
+      - "5480:80"
+    volumes:
+      - /home/docker-storage/fcommerce_pgadmin:/var/lib/pgadmin
