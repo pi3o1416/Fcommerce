@@ -2,7 +2,9 @@
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth.password_validation import validate_password
 from django.db import models
+from django.db.models import CheckConstraint
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 from dirtyfields import DirtyFieldsMixin
 
 from .validators import UnicodeMerchantNameValidator
@@ -36,6 +38,14 @@ class Merchant(DirtyFieldsMixin, models.Model):
     publish_shop = models.BooleanField(
         verbose_name=_('Publish Shop'),
         default=False
+    )
+    integrate_facebook = models.BooleanField(
+        verbose_name=_('Integrate Facebook'),
+        default=False
+    )
+    created_at = models.DateTimeField(
+        verbose_name=_('Created At'),
+        auto_now_add=True,
     )
     _password = None
 
