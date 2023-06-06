@@ -1,6 +1,6 @@
 
 from django.test import TestCase
-from ..serializers import MerchantCreateSerializer
+from ..serializers import MerchantCreateSerializer, MerchantUpdateSerializer
 
 
 class TestMerchantCreateSerializer(TestCase):
@@ -27,7 +27,6 @@ class TestMerchantCreateSerializer(TestCase):
     def test_valid_serializer(self):
         merchant_data = self.merchant_create_data.copy()
         serializer = self.initialize_serializer(data=merchant_data)
-        print(serializer.data, serializer.validated_data)
         self.assertTrue(serializer.is_valid(), "Serializer should be valid for valid data")
 
     def test_invalid_password(self):
@@ -53,3 +52,27 @@ class TestMerchantCreateSerializer(TestCase):
 
     def test_absent_retype_password_field(self):
         self._test_absent_field(field_name='retype_password')
+
+
+class TestMerchantUpdateSerializer(TestCase):
+    def setUp(self):
+        self.merchant_update_data = {
+            'name': 'testmerchant',
+            'publish_shop': True
+        }
+        pass
+
+    @staticmethod
+    def initialize_serializer(data):
+        serializer = MerchantUpdateSerializer(data=data)
+        serializer.is_valid()
+        return serializer
+
+    def _test_absent_field(self, field_name):
+        merchant_data = self.merchant_update_data.copy()
+        del merchant_data[field_name]
+        serializer = self.initialize_serializer(data=merchant_data)
+        self.assertFalse(serializer.is_valid(), f"{field_name} absent should not be acceptable")
+
+    def test_absent_name_field(self):
+        self._test_absent_field(field_name='name')
