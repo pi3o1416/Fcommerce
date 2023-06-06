@@ -5,37 +5,56 @@ from rest_framework.validators import ValidationError
 from .models import Merchant
 
 
-class MerchantCreateSerializer(serializers.ModelSerializer):
+class PasswordValidationMixin(serializers.Serializer):
+    def validate_password(self, password):
+        validate_password(password=password)
+        return password
+
+    def validate_retype_password(self, retype_password):
+        password = self.initial_data.get('password')
+        if password is not None and password != retype_password:
+            raise ValidationError("Password and Retype password should be same")
+        return retype_password
+
+
+class MerchantCreateSerializer(PasswordValidationMixin, serializers.ModelSerializer):
     password = serializers.CharField()
     retype_password = serializers.CharField()
 
     class Meta:
         model = Merchant
         fields = ['id', 'name', 'merchant_id', 'password', 'retype_password']
+        read_only_fields = ['id']
         extra_kwargs = {
             'password': {'write_only': True},
             'retype_password': {'write_only': True}
         }
 
-    def validate_password(self, password):
-        validate_password(password)
-        return password
-
-    def validate(self, *args, **kwargs):
-        password = self.initial_data['password']
-        retype_password = self.initial_data['retype_password']
-        if password != retype_password:
-            raise ValidationError("Password and Retype password is not same")
-        return super().validate(*args, **kwargs)
-
 
 class MerchantUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Merchant
-        fields = ['id', 'name', 'password', 'retype_password']
+        fields = ['id', 'name', 'publish_shop']
+        read_only_fields = ['id']
+
+
+class MerchantPasswordChangeSerializer(PasswordValidationMixin, serializers.ModelSerializer):
+    current_password = serializers.CharField()
+    password = serializers.CharField()
+    retype_password = serializers.CharField()
+
+    class Meta:
+        model = Merchant
+        fields = ['current_password', 'password', 'retype_password']
+
+    def validate_current_password(self, current_password):
+        if self.instance is not None and self.instance.check_password(current_password) is True:
+            return current_password
+        raise ValidationError("Invalid Current Password")
 
 
 class MerchantDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Merchant
         fields = [field.name for field in Merchant._meta.fields]
+        read_only_fields = [field.name for field in Merchant._meta.fields]
