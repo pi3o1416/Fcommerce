@@ -28,6 +28,7 @@ class Merchant(DirtyFieldsMixin, models.Model):
     )
     merchant_id = models.CharField(
         verbose_name=_('Merchant ID'),
+        unique=True,
         max_length=200,
     )
     password = models.CharField(
