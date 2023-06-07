@@ -18,17 +18,21 @@ class PasswordValidationMixin(serializers.Serializer):
 
 
 class MerchantCreateSerializer(PasswordValidationMixin, serializers.ModelSerializer):
-    password = serializers.CharField()
-    retype_password = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+    retype_password = serializers.CharField(write_only=True)
 
     class Meta:
         model = Merchant
-        fields = ['id', 'name', 'merchant_id', 'password', 'retype_password']
+        fields = ['id', 'name', 'merchant_id', 'password', 'retype_password', 'publish_shop', 'integrate_facebook']
         read_only_fields = ['id']
         extra_kwargs = {
-            'password': {'write_only': True},
-            'retype_password': {'write_only': True}
+            'publish_shop': {'read_only': True},
+            'integrate_facebook': {'read_only': True}
         }
+
+    def validate(self, attrs):
+        attrs.pop('retype_password')
+        return super().validate(attrs=attrs)
 
 
 class MerchantUpdateSerializer(serializers.ModelSerializer):
