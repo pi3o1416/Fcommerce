@@ -1,5 +1,4 @@
 
-from django.contrib.auth.hashers import check_password, make_password
 from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 from django.test import TestCase
@@ -69,7 +68,11 @@ class TestMerchant(TestCase):
         self.assertEqual(max_length, 200, "Merchant_id max length should be 200")
 
     def test_set_password(self):
-        pass
+        raw_password = 'testtestap1'
+        merchant = Merchant.objects.get(name='fcommerce')
+        merchant.set_password(raw_password)
+        matched = merchant.check_password(raw_password)
+        self.assertTrue(matched, 'Hashed password and instance password should be equal')
 
     def test_check_password(self):
         password = self.merchant_data['password']
@@ -78,10 +81,18 @@ class TestMerchant(TestCase):
         self.assertTrue(matched, "Password should be matched with raw password")
 
     def test_password_encrypt_signal(self):
-        pass
+        merchant_data = {
+            "name": "newmerchant",
+            "merchant_id": "newmerchant",
+            "password": "testtestap1"
+        }
+        merchant = Merchant.objects.create(**merchant_data)
+        self.assertNotEqual(merchant_data['password'], merchant.password, 'Merchant Password should be hashed on pre save.')
 
     def test_publish_shop_default(self):
-        pass
+        merchant = Merchant.objects.get(name=self.merchant_data['name'])
+        self.assertFalse(merchant.publish_shop, 'Merchant publish shop field should be false by default')
 
     def test_integrate_facebook_default(self):
-        pass
+        merchant = Merchant.objects.get(name=self.merchant_data['name'])
+        self.assertFalse(merchant.integrate_facebook, 'Merchant integrate_facebook field should be false by default')
