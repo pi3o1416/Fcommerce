@@ -2,20 +2,25 @@
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth.password_validation import validate_password
 from django.db import models
-from django.db.models import CheckConstraint
 from django.utils.translation import gettext_lazy as _
-from django.utils import timezone
 from dirtyfields import DirtyFieldsMixin
 
+from services.querysets import TemplateQuerySet
 from .validators import UnicodeMerchantNameValidator
 
 
-class MerchatManager(models.Manager):
+class MerchantManager(models.Manager):
     def get_queryset(self):
         return MerchantQuerySet(model=self.model, using=self._db)
 
+    def filter_from_query_params(self, request):
+        return self.get_queryset().filter_from_query_params(request=request)
 
-class MerchantQuerySet(models.QuerySet):
+    def filter_with_related_fields(self, request, related_fields: list):
+        return self.get_queryset().filter_with_related_fields(request=request, related_fields=related_fields)
+
+
+class MerchantQuerySet(TemplateQuerySet):
     pass
 
 
@@ -49,6 +54,7 @@ class Merchant(DirtyFieldsMixin, models.Model):
         auto_now_add=True,
     )
     _password = None
+    objects = MerchantManager()
 
     def set_password(self, raw_password):
         self._password = self.password
