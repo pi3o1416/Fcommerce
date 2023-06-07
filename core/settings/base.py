@@ -190,9 +190,9 @@ SIMPLE_JWT = {
 
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "Task Management Project",
-    "DESCRIPTION": "A task management project to maintain tasks efficiently",
-    "VERSION": "2.0.0",
+    "TITLE": "Fcommerce",
+    "DESCRIPTION": "A Fcommerce project",
+    "VERSION": "1.0.0",
 }
 
 # Shell plus configuration
