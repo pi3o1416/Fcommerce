@@ -60,5 +60,5 @@ class MerchantPasswordChangeSerializer(PasswordValidationMixin, serializers.Mode
 class MerchantDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Merchant
-        fields = [field.name for field in Merchant._meta.fields]
-        read_only_fields = [field.name for field in Merchant._meta.fields]
+        fields = ['id', 'name', 'merchant_id', 'publish_shop', 'integrate_facebook', 'created_at']
+        read_only_fields = ['id', 'name', 'merchant_id', 'publish_shop', 'integrate_facebook', 'created_at']
