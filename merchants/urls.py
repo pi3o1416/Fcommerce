@@ -1,13 +1,13 @@
 
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
 from .views import MerchantModelViewSet
+from .routers import CustomRouter
 
 
-merchant_router = DefaultRouter()
-merchant_router.register('', MerchantModelViewSet)
+router = CustomRouter(trailing_slash=True)
+router.register('', MerchantModelViewSet)
 
 app_name = 'merchant'
 urlpatterns = [
-    path('', include(merchant_router.urls))
+    path('', include(router.urls))
 ]
