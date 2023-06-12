@@ -56,6 +56,9 @@ class Merchant(DirtyFieldsMixin, models.Model):
     _password = None
     objects = MerchantManager()
 
+    class Meta:
+        ordering = ['-created_at']
+
     def set_password(self, raw_password):
         self._password = self.password
         self.password = make_password(password=raw_password)
