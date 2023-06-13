@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     'django_extensions',
 
     # Local apps
-    'users.apps.UsersConfig',
     'merchants.apps.MerchantsConfig',
 ]
 
@@ -137,7 +136,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Custom settings
-AUTH_USER_MODEL = 'users.CustomUser'
+AUTH_USER_MODEL = 'merchants.Merchant'
 
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
