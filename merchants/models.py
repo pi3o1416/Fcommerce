@@ -25,8 +25,7 @@ class MerchantManager(BaseUserManager):
             self.model._meta.app_label, self.model._meta.object_name
         )
         name = GlobalUserModel.normalize_username(name)
-        merchant = self.model(name=name, merchant_id=merchant_id, **extra_fields)
-        merchant.password = make_password(password)
+        merchant = self.model(name=name, merchant_id=merchant_id, password=password, **extra_fields)
         merchant.save()
         return merchant
 
