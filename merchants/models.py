@@ -111,10 +111,14 @@ class Merchant(DirtyFieldsMixin, AbstractBaseUser, PermissionsMixin):
         auto_now_add=True,
     )
     is_staff = models.BooleanField(
-        _("staff status"),
+        verbose_name=_("staff status"),
         default=False,
-        help_text=_("Designates whether the user can log into this admin site."),
     )
+    is_active = models.BooleanField(
+        verbose_name=_("active"),
+        default=True,
+    )
+
     _password = None
     objects = MerchantManager()
     USERNAME_FIELD = "name"
