@@ -22,6 +22,22 @@ class TestMerchant(TestCase):
         finally:
             self.assertIsNotNone(merchant, "Merchat is not created")
 
+    def test_merchant_manager_create_user(self):
+        merchant_data = self.merchant_data.copy()
+        merchant_data['name'] = 'newfcommerce2'
+        merchant_data['merchant_id'] = 'newfcommerce2'
+        merchant = Merchant.objects.create_user(**merchant_data)
+        self.assertFalse(merchant.is_staff, 'Merchant staff status should be false')
+        self.assertFalse(merchant.is_superuser, 'Merchant superuser status should be false')
+
+    def test_merchant_manager_create_superuser(self):
+        merchant_data = self.merchant_data.copy()
+        merchant_data['name'] = 'newfcommerce'
+        merchant_data['merchant_id'] = 'newfcommerce'
+        merchant = Merchant.objects.create_superuser(**merchant_data)
+        self.assertTrue(merchant.is_staff, 'Merchant staff status should be True')
+        self.assertTrue(merchant.is_superuser, 'Merchant superuser status should be True')
+
     def test_unique_name(self):
         created = None
         try:
