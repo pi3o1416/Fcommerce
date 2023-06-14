@@ -2,7 +2,7 @@
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework.validators import ValidationError
-from .models import Merchant
+from ..models import Merchant
 
 
 class PasswordValidationMixin(serializers.Serializer):
