@@ -5,7 +5,8 @@ from .models import Merchant
 
 @admin.register(Merchant)
 class MerchantAdmin(admin.ModelAdmin):
-    list_display = [field.name for field in Merchant._meta.fields]
+    list_display = ['id', 'name', 'merchant_id', 'integrate_facebook', 'publish_shop', 'is_staff',
+                    'is_superuser', 'is_active', 'created_at']
 
     def add_view(self, *args, **kwargs):
         self.exclude = ('integrate_facebook', 'publish_shop')
