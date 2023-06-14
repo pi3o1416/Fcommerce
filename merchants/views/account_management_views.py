@@ -1,15 +1,13 @@
 
 from django.http import Http404
-from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.exceptions import ValidationError
-from rest_framework.response import Response
 
 from services.constants import ErrorTypes
 from services.paginations import CustomPageNumberPagination
 from services.utils import exception_handler, customize_response
-from .models import Merchant
-from .serializers import MerchantCreateSerializer, MerchantDetailSerializer
+from ..models import Merchant
+from ..serializers import MerchantCreateSerializer, MerchantDetailSerializer
 
 
 class MerchantModelViewSet(ModelViewSet):
