@@ -7,3 +7,4 @@ class ErrorTypes(Enum):
     OBJECT_DOES_NOT_EXIST = 'object_not_found'
     INVALID_CREDENTIAL = 'invalid_credential'
     INVALID_REFRESH_TOKEN = 'invalid_refresh_token'
+    NOT_AUTHENTICATED = 'not_authenticated'
