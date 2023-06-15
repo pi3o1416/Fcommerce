@@ -4,7 +4,10 @@ from django.http import Http404
 from django.core.exceptions import PermissionDenied
 
 from rest_framework import exceptions
+from rest_framework.exceptions import NotAuthenticated
 from rest_framework.response import Response
+
+from services.constants import ErrorTypes
 
 
 def set_rollback():
@@ -34,11 +37,18 @@ def exception_handler(exc: Exception, context=None, message=None, error_type=Non
             headers['WWW-Authenticate'] = exc.auth_header
         if getattr(exc, 'wait', None):
             headers['Retry-After'] = '%d' % exc.wait
-        data = {
-            'detail': exc.detail,
-            'error_type': error_type,
-            'message': message
-        }
+        if isinstance(exc, exceptions.NotAuthenticated):
+            data = {
+                'detail': exc.detail,
+                'error_type': ErrorTypes.NOT_AUTHENTICATED.value,
+                'message': 'Not Authenticated'
+            }
+        else:
+            data = {
+                'detail': exc.detail,
+                'error_type': error_type,
+                'message': message
+            }
         set_rollback()
         return Response(data, status=exc.status_code, headers=headers)
 
