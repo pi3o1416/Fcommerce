@@ -2,6 +2,7 @@
 from django.http import Http404
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import IsAdminUser
 
 from services.constants import ErrorTypes
 from services.paginations import CustomPageNumberPagination
@@ -15,6 +16,7 @@ class MerchantModelViewSet(ModelViewSet):
     queryset = Merchant.objects.all()
     lookup_field = 'id'
     pagination_class = CustomPageNumberPagination
+    permission_classes = [IsAdminUser]
 
     def create(self, request, *args, **kwargs):
         try:
