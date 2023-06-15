@@ -43,7 +43,10 @@ class MyTokenObtainPairView(TokenObtainPairView):
         # Formatting Error message with desired response form
         if response.status_code >= 400:
             response.data['message'] = 'Incorrect merchant name or password'
-            response.data['error_type'] = ErrorTypes.INVALID_CREDENTIAL.value
+            if response.status_code == 400:
+                response.data['error_type'] = ErrorTypes.FORM_FIELD_ERROR.value
+            elif response.status_code == 401:
+                response.data['error_type'] = ErrorTypes.INVALID_CREDENTIAL.value
         else:
             response = customize_response(response=response, custom_message='Login Successful')
         return super().finalize_response(request, response, *args, **kwargs)
