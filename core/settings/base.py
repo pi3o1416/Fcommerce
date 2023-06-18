@@ -44,9 +44,11 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'drf_spectacular',
     'django_extensions',
+    'django_countries',
 
     # Local apps
     'merchants.apps.MerchantsConfig',
+    'products.apps.ProductsConfig',
 ]
 
 MIDDLEWARE = [
