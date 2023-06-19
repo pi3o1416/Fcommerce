@@ -63,10 +63,12 @@ class Product(models.Model):
     retailer_id = models.CharField(
         verbose_name=_('Content ID'),
         max_length=100,
+        unique=True
     )
     gtin = GTINField(
         verbose_name=_('Global Trade Item Number'),
-        max_length=50
+        max_length=50,
+        unique=True
     )
     condition = models.CharField(
         verbose_name=_('Condition'),
