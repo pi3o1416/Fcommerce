@@ -1,9 +1,11 @@
 
+from django.db import models
+from django.db.models import Q, CheckConstraint
 from django_countries.fields import CountryField
-from django.utils.translation import gettext_lazy as _
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.auth import get_user_model
-from django.db import models
+from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 
 from .fields import GTINField
 
@@ -115,7 +117,7 @@ class Product(models.Model):
     expiration_date = models.DateField(
         verbose_name=_('Expiration Date'),
         null=True,
-        blank=True
+        blank=True,
     )
     additional_image_urls = ArrayField(
         verbose_name=_('Additional Images'),
@@ -201,6 +203,14 @@ class Product(models.Model):
         null=True,
         blank=True
     )
+
+    class Meta:
+        constraints = [
+            CheckConstraint(
+                check=Q(expiration_date__gt=timezone.now().date()),
+                name='expiration_date_greater_than_today'
+            ),
+        ]
 
 
 class MerchantManager(models.Manager):
