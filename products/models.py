@@ -2,6 +2,7 @@
 from django_countries.fields import CountryField
 from django.utils.translation import gettext_lazy as _
 from django.contrib.postgres.fields import ArrayField
+from django.contrib.auth import get_user_model
 from django.db import models
 
 from .fields import GTINField
@@ -61,7 +62,7 @@ class Product(models.Model):
     )
     retailer_id = models.CharField(
         verbose_name=_('Content ID'),
-        max_length=100
+        max_length=100,
     )
     gtin = GTINField(
         verbose_name=_('Global Trade Item Number'),
@@ -210,3 +211,22 @@ class Product(models.Model):
         null=True,
         blank=True
     )
+
+
+class MerchantManager(models.Manager):
+    pass
+
+
+class MerchantProducts(models.Model):
+    product = models.OneToOneField(
+        verbose_name=_('Product'),
+        to=Product,
+        on_delete=models.CASCADE,
+        primary_key=True
+    )
+    merchant = models.ForeignKey(
+        verbose_name=_('Merchant'),
+        to=get_user_model(),
+        on_delete=models.RESTRICT,
+    )
+    objects = MerchantManager()
