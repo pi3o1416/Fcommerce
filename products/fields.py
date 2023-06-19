@@ -1,22 +1,15 @@
 
 import random
+from gtin import append_check_digit
 from django.db import models
 from django.core.exceptions import ValidationError
 
 
 def generate_gtin_13():
     digits = [random.randint(0, 9) for _ in range(12)]
-    check_digit = calculate_check_digit(digits)
-    gtin_13 = "".join(str(d) for d in digits) + str(check_digit)
+    gtin_12 = "".join(str(digit) for digit in digits)
+    gtin_13 = append_check_digit(gtin_12)
     return gtin_13
-
-
-def calculate_check_digit(digits):
-    # Multiply each digit by 3 or 1 based on its position
-    weighted_sum = sum(d * (3 if i % 2 == 0 else 1) for i, d in enumerate(digits))
-    # Calculate the check digit as the nearest equal or higher multiple of 10
-    check_digit = (10 - (weighted_sum % 10)) % 10
-    return check_digit
 
 
 class AddressJSONField(models.JSONField):
