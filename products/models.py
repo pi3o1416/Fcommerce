@@ -179,21 +179,6 @@ class Product(models.Model):
         null=True,
         blank=True
     )
-    offer_price_amount = models.IntegerField(
-        verbose_name=_('Offer Price'),
-        null=True,
-        blank=True
-    )
-    offer_price_start_date = models.DateTimeField(
-        verbose_name=_('Offer Price Start Date'),
-        null=True,
-        blank=True
-    )
-    offer_price_end_date = models.DateTimeField(
-        verbose_name=_('Offer Price End Date'),
-        null=True,
-        blank=True
-    )
     material = models.CharField(
         verbose_name=_('Material'),
         max_length=200,
