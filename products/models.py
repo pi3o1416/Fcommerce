@@ -19,6 +19,9 @@ class Product(models.Model):
         USED = 'used', _('Used'),
         USED_LIKE_NEW = 'used_like_new', _('Used Like New')
         USED_GOOD = 'used_good', _('Used Good')
+        USED_FAIR = 'used_fair', _('Used Fair')
+        CPO = 'cpo', _('CPO')
+        OPEN_BOX_NEW = 'open_box_new', _('Open Box New')
 
     class AvailabilityChoices(models.TextChoices):
         IN_STOCK = 'in stock', _('In Stock')
