@@ -208,12 +208,14 @@ class MerchantProducts(models.Model):
     product = models.OneToOneField(
         verbose_name=_('Product'),
         to=Product,
+        related_name='product_owner',
         on_delete=models.CASCADE,
         primary_key=True
     )
     merchant = models.ForeignKey(
         verbose_name=_('Merchant'),
         to=get_user_model(),
+        related_name='owned_products',
         on_delete=models.RESTRICT,
     )
     objects = MerchantManager()
