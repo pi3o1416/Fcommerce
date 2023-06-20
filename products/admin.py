@@ -1,7 +1,7 @@
 
 from django.utils.translation import gettext_lazy as _
 from django.contrib import admin
-from .models import Product
+from .models import Product, MerchantProducts
 
 
 @admin.register(Product)
@@ -16,3 +16,8 @@ class ProductAdmin(admin.ModelAdmin):
         (_('Importer Information'), {'fields': ('importer_name',)}),
         (_('Other'), {'fields': ('pattern', 'return_policy_days', 'visibility', 'start_date')})
     )
+
+
+@admin.register(MerchantProducts)
+class MerchantProductAdmin(admin.ModelAdmin):
+    list_display = [field.name for field in MerchantProducts._meta.fields]
