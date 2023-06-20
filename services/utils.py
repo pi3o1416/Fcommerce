@@ -43,6 +43,12 @@ def exception_handler(exc: Exception, context=None, message=None, error_type=Non
                 'error_type': ErrorTypes.NOT_AUTHENTICATED.value,
                 'message': 'Not Authenticated'
             }
+        if isinstance(exc, exceptions.PermissionDenied):
+            data = {
+                'detail': exc.detail,
+                'error_type': ErrorTypes.NOT_AUTHORIZED.value,
+                'message': 'Not Authorized'
+            }
         else:
             data = {
                 'detail': exc.detail,
