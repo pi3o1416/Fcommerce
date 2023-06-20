@@ -7,7 +7,23 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 
+from services.querysets import TemplateQuerySet
 from .fields import GTINField
+
+
+class ProductManager(models.Manager):
+    def get_queryset(self):
+        return ProductQuerySet(model=self.model, using=self._db)
+
+    def filter_from_query_params(self, request):
+        return self.get_queryset().filter_from_query_params(request=request)
+
+    def filter_from_related_query_params(self, request, related_fields):
+        return self.get_queryset().filter_with_related_fields(request=request, related_fields=related_fields)
+
+
+class ProductQuerySet(TemplateQuerySet):
+    pass
 
 
 class Product(models.Model):
@@ -203,6 +219,7 @@ class Product(models.Model):
         null=True,
         blank=True
     )
+    objects = ProductManager()
 
     class Meta:
         constraints = [
@@ -212,8 +229,22 @@ class Product(models.Model):
             ),
         ]
 
+    def __str__(self):
+        return self.name
 
-class MerchantManager(models.Manager):
+
+class MerchantProductManager(models.Manager):
+    def get_queryset(self):
+        return MerchantProductQuerySet(model=self.model, using=self._db)
+
+    def filter_from_query_params(self, request):
+        return self.get_queryset().filter_from_query_params(request=request)
+
+    def filter_with_related_fields(self, request, related_fields):
+        return self.get_queryset().filter_with_related_fields(request=request, related_fields=related_fields)
+
+
+class MerchantProductQuerySet(TemplateQuerySet):
     pass
 
 
@@ -231,4 +262,4 @@ class MerchantProducts(models.Model):
         related_name='owned_products',
         on_delete=models.RESTRICT,
     )
-    objects = MerchantManager()
+    objects = MerchantProductManager()
