@@ -66,7 +66,7 @@ class Product(models.Model):
         decimal_places=4
     )
     retailer_id = models.CharField(
-        verbose_name=_('Content ID'),
+        verbose_name=_('Retailer ID'),
         max_length=100,
         unique=True
     )
