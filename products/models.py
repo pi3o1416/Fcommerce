@@ -21,9 +21,14 @@ class ProductManager(models.Manager):
     def filter_from_related_query_params(self, request, related_fields):
         return self.get_queryset().filter_with_related_fields(request=request, related_fields=related_fields)
 
+    def merchant_products(self, merchant):
+        return self.get_queryset().merchant_products(merchant=merchant)
+
 
 class ProductQuerySet(TemplateQuerySet):
-    pass
+    def merchant_products(self, merchant):
+        merchant_products_queryset = MerchantProducts.objects.filter(merchant=merchant)
+        return self.filter(id__in=models.Subquery(merchant_products_queryset.values('product')))
 
 
 class Product(models.Model):
@@ -263,3 +268,6 @@ class MerchantProducts(models.Model):
         on_delete=models.RESTRICT,
     )
     objects = MerchantProductManager()
+
+    def __str__(self):
+        return f'{self.product_id}'
