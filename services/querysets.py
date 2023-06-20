@@ -3,7 +3,6 @@ from operator import __and__
 from functools import reduce
 from django.utils.translation import gettext_lazy as _
 from django.db.models import CharField, Q, QuerySet, TextField
-from rest_framework.request import Request
 
 
 class TemplateQuerySet(QuerySet):
@@ -25,7 +24,7 @@ class TemplateQuerySet(QuerySet):
                 )
         return filtered_tasks
 
-    def filter_from_query_params(self, request: Request, FieldModel=None, related_field=None):
+    def filter_from_query_params(self, request, FieldModel=None, related_field=None):
         """
         Filter queryset from request query parameters.
         Parameter:
@@ -44,7 +43,7 @@ class TemplateQuerySet(QuerySet):
         return self.all()
 
 
-def generate_q_objects_from_query_params(ModelName, request: Request, related_field=None):
+def generate_q_objects_from_query_params(ModelName, request, related_field=None):
     """
     Generate q_object from query_params
     Parameter:
