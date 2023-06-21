@@ -73,7 +73,7 @@ class MerchantProductsViewSet(ModelViewSet):
 
     def get_permissions(self):
         permissions = [IsAuthenticated]
-        if self.action in ['retrieve']:
+        if self.action in ['retrieve', 'update', 'destroy']:
             permissions += [IsProductOwner]
         return [permission() for permission in permissions]
 
