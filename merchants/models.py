@@ -3,7 +3,6 @@ from django.db import models
 from django.apps import apps
 from django.contrib import auth
 from dirtyfields import DirtyFieldsMixin
-from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import PermissionsMixin
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
@@ -98,10 +97,6 @@ class Merchant(DirtyFieldsMixin, AbstractBaseUser, PermissionsMixin):
         unique=True,
         max_length=200,
     )
-    publish_shop = models.BooleanField(
-        verbose_name=_('Publish Shop'),
-        default=False
-    )
     integrate_facebook = models.BooleanField(
         verbose_name=_('Integrate Facebook'),
         default=False
@@ -109,6 +104,10 @@ class Merchant(DirtyFieldsMixin, AbstractBaseUser, PermissionsMixin):
     created_at = models.DateTimeField(
         verbose_name=_('Created At'),
         auto_now_add=True,
+    )
+    is_published = models.BooleanField(
+        verbose_name=_('Publish Shop'),
+        default=False
     )
     is_staff = models.BooleanField(
         verbose_name=_("staff status"),
@@ -129,3 +128,6 @@ class Merchant(DirtyFieldsMixin, AbstractBaseUser, PermissionsMixin):
         verbose_name_plural = _("merchants")
         ordering = ['-created_at']
         swappable = "AUTH_USER_MODEL"
+
+    def __str__(self):
+        return self.name

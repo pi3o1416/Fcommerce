@@ -23,10 +23,10 @@ class MerchantCreateSerializer(PasswordValidationMixin, serializers.ModelSeriali
 
     class Meta:
         model = Merchant
-        fields = ['id', 'name', 'merchant_id', 'password', 'retype_password', 'publish_shop', 'integrate_facebook']
+        fields = ['id', 'name', 'merchant_id', 'password', 'retype_password', 'is_published', 'integrate_facebook']
         read_only_fields = ['id']
         extra_kwargs = {
-            'publish_shop': {'read_only': True},
+            'is_published': {'read_only': True},
             'integrate_facebook': {'read_only': True}
         }
 
@@ -38,7 +38,7 @@ class MerchantCreateSerializer(PasswordValidationMixin, serializers.ModelSeriali
 class MerchantUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Merchant
-        fields = ['id', 'name', 'publish_shop']
+        fields = ['id', 'name', 'is_published']
         read_only_fields = ['id']
 
 
@@ -60,5 +60,5 @@ class MerchantPasswordChangeSerializer(PasswordValidationMixin, serializers.Mode
 class MerchantDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Merchant
-        fields = ['id', 'name', 'merchant_id', 'publish_shop', 'integrate_facebook', 'created_at']
-        read_only_fields = ['id', 'name', 'merchant_id', 'publish_shop', 'integrate_facebook', 'created_at']
+        fields = ['id', 'name', 'merchant_id', 'is_published', 'integrate_facebook', 'created_at']
+        read_only_fields = ['id', 'name', 'merchant_id', 'is_published', 'integrate_facebook', 'created_at']
