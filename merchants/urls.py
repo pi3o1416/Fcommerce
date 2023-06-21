@@ -1,11 +1,12 @@
 
 from django.urls import path, include
-from .views import MerchantModelViewSet, MyTokenObtainPairView, MyTokenRefreshView, LogoutView
+from .views import MerchantModelViewSet, MyTokenObtainPairView, MyTokenRefreshView, LogoutView, AuthMerchantViewSet
 from .routers import CustomRouter
 
 
 router = CustomRouter(trailing_slash=True)
 router.register('', MerchantModelViewSet)
+router.register('auth-merchant', AuthMerchantViewSet)
 
 app_name = 'merchant'
 urlpatterns = [
