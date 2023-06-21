@@ -9,3 +9,4 @@ class ErrorTypes(Enum):
     INVALID_REFRESH_TOKEN = 'invalid_refresh_token'
     NOT_AUTHENTICATED = 'not_authenticated'
     NOT_AUTHORIZED = 'not_authorized'
+    DB_RESTRICTED = 'db_restricted'
