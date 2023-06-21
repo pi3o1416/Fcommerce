@@ -107,7 +107,7 @@ class TestMerchant(TestCase):
 
     def test_publish_shop_default(self):
         merchant = Merchant.objects.get(name=self.merchant_data['name'])
-        self.assertFalse(merchant.publish_shop, 'Merchant publish shop field should be false by default')
+        self.assertFalse(merchant.is_published, 'Merchant publish shop field should be false by default')
 
     def test_integrate_facebook_default(self):
         merchant = Merchant.objects.get(name=self.merchant_data['name'])

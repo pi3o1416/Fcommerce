@@ -30,7 +30,7 @@ class MerchantViewSetTest(TestCase):
         ]
         for merchant_data in self.merchants_data:
             Merchant.objects.create(**merchant_data)
-        self.access_token = self.get_access_token(name=self.merchants_data[0]['name'], password=self.merchants_data[0]['password'])
+        self.access_token = self.get_access_token(merchant_id=self.merchants_data[0]['merchant_id'], password=self.merchants_data[0]['password'])
         return super().setUp()
 
     @classmethod
@@ -43,8 +43,8 @@ class MerchantViewSetTest(TestCase):
         return response
 
     @classmethod
-    def get_access_token(cls, name, password):
-        response = cls.get_response(view_name='merchant:login', method='post', data={'name': name, 'password': password})
+    def get_access_token(cls, merchant_id, password):
+        response = cls.get_response(view_name='merchant:login', method='post', data={'merchant_id': merchant_id, 'password': password})
         if response.status_code == 200:
             return response.data['detail']['access']
 
@@ -229,14 +229,16 @@ class TestAuthViews(TestCase):
         return response
 
     def test_merchant_login_success(self):
-        response = self.get_merchant_login_response(login_data={'name': self.merchant_data['name'], 'password': self.merchant_data['password']})
+        response = self.get_merchant_login_response(
+            login_data={'merchant_id': self.merchant_data['merchant_id'], 'password': self.merchant_data['password']})
         self.assertEqual(response.status_code, 200, 'Merchant login success status code should be 200')
         self.assertEqual(response.data['message'], 'Login Successful', 'Merchant login success message did not match')
         self.assertTrue('access' in response.data['detail'], 'Access token not found in login response')
         self.assertFalse('refresh' in response.data['detail'], 'Refresh found in login response')
 
     def test_merchant_logout_success(self):
-        login_response = self.get_merchant_login_response(login_data={'name': self.merchant_data['name'], 'password': self.merchant_data['password']})
+        login_response = self.get_merchant_login_response(
+            login_data={'merchant_id': self.merchant_data['merchant_id'], 'password': self.merchant_data['password']})
         cookies = login_response.cookies
         access_token = login_response.data['detail']['access']
         logout_response = self.get_merchant_logout_response(cookies=cookies, access_token=access_token)
@@ -247,19 +249,20 @@ class TestAuthViews(TestCase):
         self.assertEqual(logout_response.status_code, 401, 'Logout forbidden for unauthorized user')
 
     def test_merchant_refresh_token_success(self):
-        login_response = self.get_merchant_login_response(login_data={'name': self.merchant_data['name'], 'password': self.merchant_data['password']})
+        login_response = self.get_merchant_login_response(
+            login_data={'merchant_id': self.merchant_data['merchant_id'], 'password': self.merchant_data['password']})
         refresh_token_response = self.get_merchant_refresh_token_response(cookies=login_response.cookies)
         self.assertEqual(refresh_token_response.status_code, 200, 'Refresh token success status code did not match')
 
     def test_merchant_login_failed(self):
-        response = self.get_merchant_login_response(login_data={'name': self.merchant_data['name'], 'password': 'randompassword'})
+        response = self.get_merchant_login_response(login_data={'merchant_id': self.merchant_data['merchant_id'], 'password': 'randompassword'})
         self.assertEqual(response.status_code, 401, 'Merchant login failed status should be 401 for invalid data')
         self.assertEqual(response.data['message'], 'Incorrect merchant name or password')
         self.assertEqual(response.data['error_type'], ErrorTypes.INVALID_CREDENTIAL.value,
                          'Merchant login error_type should be invalid_credential on 401')
 
     def test_merchant_login_failed_for_absent_data(self):
-        response = self.get_merchant_login_response(login_data={'name': self.merchant_data['name']})
+        response = self.get_merchant_login_response(login_data={'merchant_id': self.merchant_data['merchant_id']})
         self.assertEqual(response.status_code, 400, 'Merchant login failed status should be 400 for absent data')
         self.assertEqual(response.data['message'], 'Incorrect merchant name or password')
         self.assertEqual(response.data['error_type'], ErrorTypes.FORM_FIELD_ERROR.value, 'login error_type should be form_field_error on 400')
