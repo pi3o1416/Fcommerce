@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     # Local apps
     'merchants.apps.MerchantsConfig',
     'products.apps.ProductsConfig',
+    'facebook_integration.apps.FacebookIntegrationConfig',
 ]
 
 MIDDLEWARE = [
