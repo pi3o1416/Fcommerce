@@ -1,5 +1,6 @@
 
 from django.db import models
+from django.db.models.deletion import RestrictedError
 from django.apps import apps
 from django.contrib import auth
 from dirtyfields import DirtyFieldsMixin
@@ -8,6 +9,7 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
 
 from services.querysets import TemplateQuerySet
+from .exceptions import MerchantDeleteException
 from .validators import UnicodeMerchantNameValidator
 
 
@@ -120,8 +122,8 @@ class Merchant(DirtyFieldsMixin, AbstractBaseUser, PermissionsMixin):
 
     _password = None
     objects = MerchantManager()
-    USERNAME_FIELD = "name"
-    REQUIRED_FIELDS = ['merchant_id']
+    USERNAME_FIELD = "merchant_id"
+    REQUIRED_FIELDS = ['name']
 
     class Meta:
         verbose_name = _("merchant")
@@ -131,3 +133,9 @@ class Merchant(DirtyFieldsMixin, AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.name
+
+    def delete(self):
+        try:
+            super().delete()
+        except RestrictedError:
+            raise MerchantDeleteException('Merchant Delete Restricted')
