@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'django_extensions',
     'django_countries',
+    'django_filters',
 
     # Local apps
     'merchants.apps.MerchantsConfig',
