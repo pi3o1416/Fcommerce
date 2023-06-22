@@ -8,7 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 
 from services.querysets import TemplateQuerySet
-from .fields import GTINField
+from .fields import GTINField, RetailerIDField
 
 
 class ProductManager(models.Manager):
@@ -86,7 +86,7 @@ class Product(models.Model):
         max_digits=12,
         decimal_places=4
     )
-    retailer_id = models.CharField(
+    retailer_id = RetailerIDField(
         verbose_name=_('Retailer ID'),
         max_length=100,
         unique=True

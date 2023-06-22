@@ -12,6 +12,12 @@ def generate_gtin_13():
     return gtin_13
 
 
+def generate_retailer_id():
+    digits = [random.randint(0, 9) for _ in range(13)]
+    retailer_id = "".join(str(digit) for digit in digits)
+    return retailer_id
+
+
 class AddressJSONField(models.JSONField):
     def __init__(self, *args, **kwargs):
         self.fixed_keys = ['street1', 'street2', 'city', 'region', 'postal_code', 'country']
@@ -34,5 +40,18 @@ class GTINField(models.CharField):
         value = getattr(model_instance, self.attname, None)
         if not value:
             value = generate_gtin_13()
+            setattr(model_instance, self.attname, value)
+        return value
+
+
+class RetailerIDField(models.CharField):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('editable', False)
+        super().__init__(*args, **kwargs)
+
+    def pre_save(self, model_instance, add):
+        value = getattr(model_instance, self.attname, None)
+        if not value:
+            value = generate_retailer_id()
             setattr(model_instance, self.attname, value)
         return value
