@@ -232,6 +232,10 @@ class Product(models.Model):
                 check=Q(expiration_date__gt=timezone.now().date()),
                 name='expiration_date_greater_than_today'
             ),
+            CheckConstraint(
+                check=Q(price__gt=0),
+                name='Price should be greater than 0'
+            )
         ]
 
     def __str__(self):
