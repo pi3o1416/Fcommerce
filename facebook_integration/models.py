@@ -12,23 +12,28 @@ class FacebookIntegrationData(DirtyFieldsMixin, models.Model):
         verbose_name=_('Merchant'),
         to=Merchant,
         on_delete=models.CASCADE,
-        related_name='facebook_info'
+        related_name='facebook_info',
+        unique=True,
     )
     access_token = models.CharField(
         verbose_name=_('Access Token'),
         max_length=700,
+        unique=True,
     )
     business_id = models.CharField(
         verbose_name=_('Business ID'),
-        max_length=500
+        max_length=500,
+        unique=True,
     )
     catalog_id = models.CharField(
         verbose_name=_('Catalog ID'),
-        max_length=500
+        max_length=500,
+        unique=True,
     )
     page_id = models.CharField(
         verbose_name=_('Page ID'),
-        max_length=500
+        max_length=500,
+        unique=True,
     )
     page_data = models.JSONField(
         verbose_name=_('Page Info'),
