@@ -1,6 +1,7 @@
 
 from django.http import Http404
 from django.db.models.deletion import RestrictedError
+from rest_framework import status
 from rest_framework.viewsets import ModelViewSet, ViewSet
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
@@ -139,7 +140,8 @@ class AuthMerchantViewSet(ViewSet):
             data={
                 'detail': serializer.errors,
                 'message': 'Password Change Failed'
-            }
+            },
+            status=status.HTTP_400_BAD_REQUEST
         )
 
     def get_serializer_class(self):
