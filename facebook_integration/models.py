@@ -8,7 +8,7 @@ Merchant = get_user_model()
 
 
 class FacebookIntegrationData(DirtyFieldsMixin, models.Model):
-    merchant = models.ForeignKey(
+    merchant = models.OneToOneField(
         verbose_name=_('Merchant'),
         to=Merchant,
         on_delete=models.CASCADE,
