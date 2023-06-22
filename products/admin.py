@@ -8,7 +8,7 @@ from .models import Product, MerchantProducts
 class ProductAdmin(admin.ModelAdmin):
     list_display = [field.name for field in Product._meta.fields]
     fieldsets = (
-        (_('Required Fields'), {'fields': ('name', 'description', 'url', 'image_url', 'currency', 'price', 'retailer_id')}),
+        (_('Required Fields'), {'fields': ('name', 'description', 'url', 'image_url', 'currency', 'price')}),
         (_('Product'), {'fields': ('condition', 'availability', 'brand', 'category', 'color', 'expiration_date',
                                    'additional_image_urls', 'additional_variant_attributes', 'size',
                                    'short_description', 'product_type', 'origin_country', 'material', 'gender')}),
