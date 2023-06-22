@@ -10,7 +10,6 @@ from ..models import Product
 
 class ProductTest(TestCase):
     def setUp(self):
-        self.retailer_id = self.generate_retailer_id()
         self.product_data = {
             "name": "Test Product",
             "description": "Test Product Description",
@@ -18,13 +17,9 @@ class ProductTest(TestCase):
             "image_url": "www.example.com/image.png",
             "currency": "BDT",
             "price": "123",
-            "retailer_id": self.retailer_id
         }
-        self.create_product(self.product_data)
-
-    @staticmethod
-    def generate_retailer_id():
-        return random.randint(1, 999999999999)
+        self.product = self.create_product(self.product_data)
+        self.retailer_id = self.product.retailer_id
 
     @staticmethod
     def _validate_currencies(currencies):
@@ -51,19 +46,18 @@ class ProductTest(TestCase):
             return None
 
     @classmethod
-    def create_product_with_retailer_id(cls, product_data, absent_field=None):
+    def create_product_with_absent_field(cls, product_data, absent_field=None):
         try:
             if absent_field and absent_field in product_data:
                 product_data[absent_field] = None
-            product_data['retailer_id'] = cls.generate_retailer_id()
             product = cls.create_product(product_data=product_data)
             return product
         except Exception:
             return None
 
     def test_successful_product_create(self):
-        product = Product.objects.filter(retailer_id=self.retailer_id).first()
-        self.assertIsNotNone(product, "Product should be found with retailer id")
+        product = Product.objects.filter(name=self.product_data['name']).first()
+        self.assertIsNotNone(product, f"Product should be found with name={self.product_data['name']}")
 
     def test_accepted_currency_choice(self):
         currency_choices = [currency[0] for currency in Product.AcceptedCurrency.choices]
@@ -95,15 +89,15 @@ class ProductTest(TestCase):
         self.assertTrue(is_valid, "Gender choices did not match with facebook gender choices")
 
     def test_null_restriction_on_name_field(self):
-        product = self.create_product_with_retailer_id(self.product_data.copy(), 'name')
+        product = self.create_product_with_absent_field(self.product_data.copy(), 'name')
         self.assertIsNone(product, "Product creation should not be allowed without name")
 
     def test_null_restriction_on_description_field(self):
-        product = self.create_product_with_retailer_id(self.product_data.copy(), 'description')
+        product = self.create_product_with_absent_field(self.product_data.copy(), 'description')
         self.assertIsNone(product, "Product creation should not be allowed without description")
 
     def test_null_restriction_on_url_field(self):
-        product = self.create_product_with_retailer_id(self.product_data.copy(), 'url')
+        product = self.create_product_with_absent_field(self.product_data.copy(), 'url')
         self.assertIsNone(product, "Product creation should not be allowed without url")
 
     def test_invalid_url_on_url_field(self):
@@ -111,7 +105,7 @@ class ProductTest(TestCase):
         self.assertTrue(isinstance(field, URLField), 'URL should be an instance of url field')
 
     def test_null_restriction_on_image_url_field(self):
-        product = self.create_product_with_retailer_id(self.product_data.copy(), 'image_url')
+        product = self.create_product_with_absent_field(self.product_data.copy(), 'image_url')
         self.assertIsNone(product, "Product creation should not be allowed without image url")
 
     def test_invalid_url_on_image_url_field(self):
@@ -119,26 +113,21 @@ class ProductTest(TestCase):
         self.assertTrue(isinstance(field, URLField), 'Image URL should be an instance of url field')
 
     def test_null_restriction_on_currency_field(self):
-        product = self.create_product_with_retailer_id(self.product_data.copy(), 'currency')
+        product = self.create_product_with_absent_field(self.product_data.copy(), 'currency')
         self.assertIsNone(product, "Product creation should not be allowed without currency")
 
     def test_invalid_currency_code_not_supported_by_ISO_4217(self):
         pass
 
     def test_null_restriction_on_price_field(self):
-        product = self.create_product_with_retailer_id(self.product_data.copy(), 'price')
+        product = self.create_product_with_absent_field(self.product_data.copy(), 'price')
         self.assertIsNone(product, "Product creation should not be allowed without image url")
 
     def test_negetive_value_on_price_field(self):
         product_data = self.product_data.copy()
-        product_data['price'] = -10
+        product_data['price'] = "-10"
         product = self.create_product(product_data=product_data)
         self.assertIsNone(product, 'Product create with negative price should not be allowed')
-
-    def test_unique_constraint_on_retailer_id(self):
-        product_data = self.product_data.copy()
-        product = self.create_product(product_data)
-        self.assertIsNone(product, "Product creation should not be allowed with duplicate retailer id")
 
     def test_auto_generation_of_gtin_field(self):
         product = Product.objects.get(retailer_id=self.retailer_id)
@@ -165,5 +154,5 @@ class ProductTest(TestCase):
     def test_expiration_date_in_valid_range(self):
         product_data = self.product_data.copy()
         product_data['expiration_date'] = timezone.now().date() - timezone.timedelta(days=2)
-        product = self.create_product_with_retailer_id(product_data=product_data)
+        product = self.create_product(product_data=product_data)
         self.assertIsNone(product, 'Past date on expiration date should not be allowed')
