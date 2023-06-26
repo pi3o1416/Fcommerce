@@ -1,8 +1,11 @@
 
+from django.forms import model_to_dict
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
 from dirtyfields import DirtyFieldsMixin
+
+from crypto.fernet import decrypt_data
 
 Merchant = get_user_model()
 
@@ -40,3 +43,12 @@ class FacebookIntegrationData(DirtyFieldsMixin, models.Model):
         null=True,
         blank=True
     )
+
+    def decrypted_data(self):
+        encrypted_data = model_to_dict(self)
+        decrypted_data = {}
+        for key, value in encrypted_data.items():
+            if type(value) is str:
+                decrypted_data[key] = decrypt_data(value)
+        return decrypted_data
+
