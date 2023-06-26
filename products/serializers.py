@@ -9,7 +9,7 @@ from .models import Product, MerchantProducts
 class ProductSerializer(CountryFieldMixin, serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = [field.name for field in Product._meta.fields]
+        fields = [field.name for field in Product._meta.fields if field.name not in ['facebook_id']]
 
     @transaction.atomic
     def create(self, validated_data: dict):
