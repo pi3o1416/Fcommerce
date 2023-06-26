@@ -22,6 +22,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('merchants/', include('merchants.urls')),
     path('products/', include('products.urls')),
+    path('facebook-integration/', include('facebook_integration.urls')),
     path('schema/', SpectacularAPIView.as_view(), name='schema'),
     path("schema/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc",),
     path("schema/swagger/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger",),
