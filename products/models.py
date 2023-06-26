@@ -183,11 +183,6 @@ class Product(models.Model):
         null=True,
         blank=True
     )
-    return_policy_days = models.IntegerField(
-        verbose_name=_('Return Policy Days'),
-        null=True,
-        blank=True
-    )
     product_type = models.CharField(
         verbose_name=_('Product Type'),
         max_length=200,
@@ -221,6 +216,12 @@ class Product(models.Model):
         verbose_name=_('Gender'),
         max_length=20,
         choices=GenderChoices.choices,
+        null=True,
+        blank=True
+    )
+    facebook_id = models.CharField(
+        verbose_name=_('Facebook ID'),
+        max_length=100,
         null=True,
         blank=True
     )
