@@ -14,7 +14,7 @@ class ProductAdmin(admin.ModelAdmin):
                                    'short_description', 'product_type', 'origin_country', 'material', 'gender')}),
         (_('Sale'), {'fields': ('sale_price', 'sale_price_start_date', 'sale_price_end_date')}),
         (_('Importer Information'), {'fields': ('importer_name',)}),
-        (_('Other'), {'fields': ('pattern', 'return_policy_days', 'visibility', 'start_date')})
+        (_('Other'), {'fields': ('pattern', 'visibility', 'start_date')})
     )
 
 
