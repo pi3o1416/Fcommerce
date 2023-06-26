@@ -205,3 +205,6 @@ SHELL_PLUS = "ipython"
 SHELL_PLUS_PRINT_SQL = True
 SHELL_PLUS_PYGMENTS_FORMATTER = pygments.formatters.TerminalFormatter
 SHELL_PLUS_PYGMENTS_FORMATTER_KWARGS = {}
+
+# Fernet configuration
+FERNET_KEY = env('FERNET_KEY').encode()
