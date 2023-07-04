@@ -1,5 +1,6 @@
 
 from django.db import models
+from django.db import transaction
 from django.db.models import Q, CheckConstraint
 from django_countries.fields import CountryField
 from django.contrib.postgres.fields import ArrayField
@@ -8,6 +9,9 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 
 from services.querysets import TemplateQuerySet
+from facebook_integration.exceptions import FacebookIntegrationIsNotComplete
+from facebook_integration.utils import FacebookAdapter
+from facebook_integration.models import FacebookIntegrationData
 from .fields import GTINField, RetailerIDField
 
 
@@ -71,10 +75,12 @@ class Product(models.Model):
         verbose_name=_('Description')
     )
     url = models.URLField(
-        verbose_name=_('Product URL')
+        verbose_name=_('Product URL'),
+        max_length=500
     )
     image_url = models.URLField(
-        verbose_name=_('Image URL')
+        verbose_name=_('Image URL'),
+        max_length=500
     )
     currency = models.CharField(
         verbose_name=_('Currency'),
@@ -83,7 +89,7 @@ class Product(models.Model):
     )
     price = models.DecimalField(
         verbose_name=_('Price'),
-        max_digits=12,
+        max_digits=16,
         decimal_places=4
     )
     retailer_id = RetailerIDField(
@@ -94,7 +100,6 @@ class Product(models.Model):
     gtin = GTINField(
         verbose_name=_('Global Trade Item Number'),
         max_length=50,
-        unique=True
     )
     condition = models.CharField(
         verbose_name=_('Condition'),
@@ -142,7 +147,7 @@ class Product(models.Model):
     )
     additional_image_urls = ArrayField(
         verbose_name=_('Additional Images'),
-        base_field=models.URLField(),
+        base_field=models.URLField(max_length=500),
         null=True,
         blank=True
     )
@@ -168,7 +173,7 @@ class Product(models.Model):
     )
     sale_price = models.DecimalField(
         verbose_name=_('Sale Price'),
-        max_digits=12,
+        max_digits=16,
         decimal_places=4,
         null=True,
         blank=True
