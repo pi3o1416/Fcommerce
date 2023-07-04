@@ -271,6 +271,23 @@ class Product(models.Model):
 
 
 class MerchantProductManager(models.Manager):
+    @transaction.atomic
+    def sync_merchant_products_with_facebook(self, merchant):
+        try:
+            facebook_adapter = FacebookAdapter.merchant_facebook_adapter(merchant=merchant)
+            inventory = self.filter(merchant=merchant)
+            facebook_products_data = facebook_adapter.get_catalog_items()
+            if facebook_products_data is not None:
+                facebook_products = [Product.from_facebook_data(product_data) for product_data in facebook_products_data]
+                inventory_products = Product.objects.filter(id__in=inventory)
+                products_absent_on_facebook = set(inventory_products) - set(facebook_products)
+                products_absent_on_inventory = set(facebook_products) - set(inventory_products)
+                Product.objects.bulk_create(products_absent_on_inventory)
+                facebook_adapter.bulk_add_catalog_item(products=products_absent_on_facebook)
+            return True
+        except FacebookIntegrationData.DoesNotExist:
+            raise FacebookIntegrationIsNotComplete('Facebook Integration Not Completed Yet')
+
     def get_queryset(self):
         return MerchantProductQuerySet(model=self.model, using=self._db)
 
