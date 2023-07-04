@@ -4,7 +4,9 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
 from dirtyfields import DirtyFieldsMixin
+from rest_framework.exceptions import ValidationError
 
+from .utils import FacebookAdapter
 from crypto.fernet import decrypt_data
 
 Merchant = get_user_model()
@@ -44,6 +46,17 @@ class FacebookIntegrationData(DirtyFieldsMixin, models.Model):
         blank=True
     )
 
+    def save(self, *args, **kwargs):
+        facebook_adapter = FacebookAdapter(
+            access_token=self.access_token,
+            business_id=self.business_id,
+            catalog_id=self.catalog_id,
+            page_id=self.page_id
+        )
+        if facebook_adapter.verify_info() is False:
+            raise ValidationError('Facebook Integration Data Verification Failed')
+        super().save(*args, **kwargs)
+
     def decrypted_data(self):
         encrypted_data = model_to_dict(self)
         decrypted_data = {}
@@ -51,4 +64,3 @@ class FacebookIntegrationData(DirtyFieldsMixin, models.Model):
             if type(value) is str:
                 decrypted_data[key] = decrypt_data(value)
         return decrypted_data
-

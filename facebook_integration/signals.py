@@ -1,7 +1,6 @@
 
 from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
-from rest_framework.exceptions import ValidationError
 
 from products.models import Product
 from crypto.fernet import encrypt_data
@@ -32,20 +31,6 @@ def set_merchant_integration_status_false(sender, instance: FacebookIntegrationD
     merchant = instance.merchant
     merchant.integrate_facebook = False
     merchant.save()
-
-
-@receiver(signal=pre_save, sender=FacebookIntegrationData)
-def verify_integration_info(sender, instance: FacebookIntegrationData, **kwargs):
-    decrypted_data = instance.decrypted_data()
-    facebook_adapter = FacebookAdapter(
-        access_token=decrypted_data['access_token'],
-        business_id=decrypted_data['business_id'],
-        catalog_id=decrypted_data['catalog_id'],
-        page_id=decrypted_data['page_id']
-    )
-    if facebook_adapter.verify_info() is False:
-        raise ValidationError('Facebook Integration Data Verification Failed')
-    return instance
 
 
 @receiver(signal=post_save, sender=FacebookIntegrationData)
