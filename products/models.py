@@ -247,6 +247,28 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
+    def __eq__(self, product: 'Product'):
+        if hash(self.retailer_id) == hash(product.retailer_id):
+            return True
+        return False
+
+    def __hash__(self):
+        return hash(self.retailer_id)
+
+    @classmethod
+    def from_facebook_data(cls, facebook_data: dict):
+        def format_price(price: str):
+            price = price[1:]
+            return ''.join(price.split(','))
+        model_fields = [field.name for field in cls._meta.fields]
+        facebook_id = facebook_data.pop('id')
+        facebook_data['price'] = format_price(facebook_data.pop('price')) if 'price' in facebook_data else None
+        facebook_data['sale_price'] = format_price(facebook_data.pop('sale_price')) if 'sale_price' in facebook_data else None
+        if 'importer_name' in facebook_data:
+            print(facebook_data['importer_name'])
+        product_data = {key: value for key, value in facebook_data.items() if key in model_fields}
+        return cls(**product_data, facebook_id=facebook_id)
+
 
 class MerchantProductManager(models.Manager):
     def get_queryset(self):
