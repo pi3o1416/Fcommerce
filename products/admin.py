@@ -9,7 +9,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = [field.name for field in MerchantProduct._meta.fields]
     fieldsets = (
         (_('Required Fields'), {'fields': ('merchant', 'name', 'description', 'url', 'image_url', 'currency', 'price')}),
-        (_('Unique Identifier (It is recommanded NOT to manually change these values)'), {'fields': ('gtin', 'retailer_id')}),
+        (_('Unique Identifier (It is recommanded NOT to manually change these values)'), {'fields': ('gtin', 'retailer_id', 'facebook_id')}),
         (_('Product'), {'fields': ('condition', 'availability', 'brand', 'category', 'color', 'expiration_date',
                                    'additional_image_urls', 'additional_variant_attributes', 'size',
                                    'short_description', 'product_type', 'origin_country', 'material', 'gender')}),
