@@ -1,14 +1,15 @@
 
 from django.utils.translation import gettext_lazy as _
 from django.contrib import admin
-from .models import Product, MerchantProducts
+from .models import MerchantProduct
 
 
-@admin.register(Product)
+@admin.register(MerchantProduct)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = [field.name for field in Product._meta.fields]
+    list_display = [field.name for field in MerchantProduct._meta.fields]
     fieldsets = (
-        (_('Required Fields'), {'fields': ('name', 'description', 'url', 'image_url', 'currency', 'price')}),
+        (_('Required Fields'), {'fields': ('merchant', 'name', 'description', 'url', 'image_url', 'currency', 'price')}),
+        (_('Unique Identifier (It is recommanded NOT to manually change these values)'), {'fields': ('gtin', 'retailer_id')}),
         (_('Product'), {'fields': ('condition', 'availability', 'brand', 'category', 'color', 'expiration_date',
                                    'additional_image_urls', 'additional_variant_attributes', 'size',
                                    'short_description', 'product_type', 'origin_country', 'material', 'gender')}),
@@ -16,8 +17,3 @@ class ProductAdmin(admin.ModelAdmin):
         (_('Importer Information'), {'fields': ('importer_name',)}),
         (_('Other'), {'fields': ('pattern', 'visibility', 'start_date')})
     )
-
-
-@admin.register(MerchantProducts)
-class MerchantProductAdmin(admin.ModelAdmin):
-    list_display = [field.name for field in MerchantProducts._meta.fields]
