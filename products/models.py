@@ -15,9 +15,29 @@ from facebook_integration.models import FacebookIntegrationData
 from .fields import GTINField, RetailerIDField
 
 
+Merchant = get_user_model()
+
+
 class ProductManager(models.Manager):
     def get_queryset(self):
         return ProductQuerySet(model=self.model, using=self._db)
+
+    @transaction.atomic
+    def sync_merchant_products_with_facebook(self, merchant):
+        try:
+            facebook_adapter = FacebookAdapter.merchant_facebook_adapter(merchant=merchant)
+            merchant_inventory = self.filter(merchant=merchant)
+            facebook_products_data = facebook_adapter.get_catalog_items()
+            if facebook_products_data is not None:
+                facebook_products = [self.model.from_facebook_data(product_data, merchant) for product_data in facebook_products_data]
+                inventory_products = self.model.objects.filter(id__in=merchant_inventory)
+                products_absent_on_facebook = set(inventory_products) - set(facebook_products)
+                products_absent_on_inventory = set(facebook_products) - set(inventory_products)
+                self.bulk_create(products_absent_on_inventory)
+                facebook_adapter.bulk_add_catalog_item(products=products_absent_on_facebook)
+            return True
+        except FacebookIntegrationData.DoesNotExist:
+            raise FacebookIntegrationIsNotComplete('Facebook Integration Not Completed Yet')
 
     def filter_from_query_params(self, request):
         return self.get_queryset().filter_from_query_params(request=request)
@@ -31,11 +51,10 @@ class ProductManager(models.Manager):
 
 class ProductQuerySet(TemplateQuerySet):
     def merchant_products(self, merchant):
-        merchant_products_queryset = MerchantProducts.objects.filter(merchant=merchant)
-        return self.filter(id__in=models.Subquery(merchant_products_queryset.values('product')))
+        return self.filter(merchant=merchant)
 
 
-class Product(models.Model):
+class MerchantProduct(models.Model):
     class AcceptedCurrency(models.TextChoices):
         BDT = 'BDT', _('BDT')
         USD = 'USD', _('USD')
@@ -67,6 +86,11 @@ class Product(models.Model):
         MALE = 'male', _('Male')
         UNISEX = 'unisex', _('Unisex')
 
+    merchant = models.ForeignKey(
+        to=Merchant,
+        on_delete=models.CASCADE,
+        related_name='inventory'
+    )
     name = models.CharField(
         verbose_name=_('Title'),
         max_length=500
@@ -233,6 +257,7 @@ class Product(models.Model):
     objects = ProductManager()
 
     class Meta:
+        unique_together = (('merchant', 'retailer_id'))
         constraints = [
             CheckConstraint(
                 check=Q(expiration_date__gt=timezone.now().date()),
@@ -247,9 +272,13 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
-    def __eq__(self, product: 'Product'):
-        if hash(self.retailer_id) == hash(product.retailer_id):
-            return True
+    def __eq__(self, merchant_product: 'MerchantProduct'):
+        if self.pk is not None and merchant_product.pk is not None:
+            if self.merchant_id == merchant_product.merchant_id and hash(self.retailer_id) == hash(merchant_product.retailer_id):
+                return True
+        else:
+            if hash(self.retailer_id) == hash(merchant_product.retailer_id):
+                return True
         return False
 
     def __hash__(self):
@@ -268,55 +297,3 @@ class Product(models.Model):
             print(facebook_data['importer_name'])
         product_data = {key: value for key, value in facebook_data.items() if key in model_fields}
         return cls(**product_data, facebook_id=facebook_id)
-
-
-class MerchantProductManager(models.Manager):
-    @transaction.atomic
-    def sync_merchant_products_with_facebook(self, merchant):
-        try:
-            facebook_adapter = FacebookAdapter.merchant_facebook_adapter(merchant=merchant)
-            inventory = self.filter(merchant=merchant)
-            facebook_products_data = facebook_adapter.get_catalog_items()
-            if facebook_products_data is not None:
-                facebook_products = [Product.from_facebook_data(product_data) for product_data in facebook_products_data]
-                inventory_products = Product.objects.filter(id__in=inventory)
-                products_absent_on_facebook = set(inventory_products) - set(facebook_products)
-                products_absent_on_inventory = set(facebook_products) - set(inventory_products)
-                Product.objects.bulk_create(products_absent_on_inventory)
-                facebook_adapter.bulk_add_catalog_item(products=products_absent_on_facebook)
-            return True
-        except FacebookIntegrationData.DoesNotExist:
-            raise FacebookIntegrationIsNotComplete('Facebook Integration Not Completed Yet')
-
-    def get_queryset(self):
-        return MerchantProductQuerySet(model=self.model, using=self._db)
-
-    def filter_from_query_params(self, request):
-        return self.get_queryset().filter_from_query_params(request=request)
-
-    def filter_with_related_fields(self, request, related_fields):
-        return self.get_queryset().filter_with_related_fields(request=request, related_fields=related_fields)
-
-
-class MerchantProductQuerySet(TemplateQuerySet):
-    pass
-
-
-class MerchantProducts(models.Model):
-    product = models.OneToOneField(
-        verbose_name=_('Product'),
-        to=Product,
-        related_name='product_owner',
-        on_delete=models.CASCADE,
-        primary_key=True
-    )
-    merchant = models.ForeignKey(
-        verbose_name=_('Merchant'),
-        to=get_user_model(),
-        related_name='owned_products',
-        on_delete=models.RESTRICT,
-    )
-    objects = MerchantProductManager()
-
-    def __str__(self):
-        return f'{self.product_id}'
