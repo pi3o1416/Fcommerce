@@ -2,9 +2,8 @@
 from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
 
-from products.models import Product
+from products.tasks import sync_inventory_with_facebook
 from crypto.fernet import encrypt_data
-from .utils import FacebookAdapter
 from .models import FacebookIntegrationData
 
 
@@ -34,17 +33,6 @@ def set_merchant_integration_status_false(sender, instance: FacebookIntegrationD
 
 
 @receiver(signal=post_save, sender=FacebookIntegrationData)
-def retrieve_existed_products(sender, instance: FacebookIntegrationData, **kwargs):
-    # TODO: Move this signal to a celery task
-    decrypted_data = instance.decrypted_data()
-    facebook_adapter = FacebookAdapter(
-        access_token=decrypted_data['access_token'],
-        business_id=decrypted_data['business_id'],
-        catalog_id=decrypted_data['catalog_id'],
-        page_id=decrypted_data['page_id']
-    )
-    facebook_products = facebook_adapter.get_catalog_items()
-    if facebook_products is not None:
-        retailer_ids = [product['retailer_id'] for product in facebook_products['data']]
-        merchant_products = Product.objects.filter(merchant=instance.merchant)
-        Product.objects.exclude(merchant=instance.merchant, retailer_id__in=retailer_ids)
+def sync_inventory_with_facebook_on_integration(sender, instance: FacebookIntegrationData, created, **kwargs):
+    if created:
+        sync_inventory_with_facebook.delay(instance.merchant_id)
