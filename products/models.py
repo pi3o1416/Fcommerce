@@ -24,6 +24,7 @@ class ProductManager(models.Manager):
 
     @transaction.atomic
     def sync_merchant_products_with_facebook(self, merchant):
+        # TODO: Divide this method to multiple method
         try:
             facebook_adapter = FacebookAdapter.merchant_facebook_adapter(merchant=merchant)
             merchant_inventory = self.filter(merchant=merchant)
@@ -34,7 +35,11 @@ class ProductManager(models.Manager):
                 products_absent_on_facebook = set(inventory_products) - set(facebook_products)
                 products_absent_on_inventory = set(facebook_products) - set(inventory_products)
                 self.bulk_create(products_absent_on_inventory)
-                facebook_adapter.bulk_add_catalog_item(products=products_absent_on_facebook)
+                added_products_fb_id = facebook_adapter.bulk_add_catalog_item(products=products_absent_on_facebook)
+                if added_products_fb_id is not None:
+                    for merchant_product in products_absent_on_facebook:
+                        merchant_product.facebook_id = added_products_fb_id[merchant_product.id]['facebook_id']
+                        self.bulk_update(products_absent_on_facebook, ['facebook_id'])
             return True
         except FacebookIntegrationData.DoesNotExist:
             raise FacebookIntegrationIsNotComplete('Facebook Integration Not Completed Yet')
@@ -111,10 +116,8 @@ class MerchantProduct(models.Model):
         max_length=3,
         choices=AcceptedCurrency.choices
     )
-    price = models.DecimalField(
+    price = models.IntegerField(
         verbose_name=_('Price'),
-        max_digits=16,
-        decimal_places=4
     )
     retailer_id = RetailerIDField(
         verbose_name=_('Retailer ID'),
@@ -195,10 +198,8 @@ class MerchantProduct(models.Model):
         null=True,
         blank=True
     )
-    sale_price = models.DecimalField(
+    sale_price = models.IntegerField(
         verbose_name=_('Sale Price'),
-        max_digits=16,
-        decimal_places=4,
         null=True,
         blank=True
     )
@@ -284,16 +285,25 @@ class MerchantProduct(models.Model):
     def __hash__(self):
         return hash(self.retailer_id)
 
+    @staticmethod
+    def format_price(price: str):
+        price = price[1:]
+        # Update this price to Integre
+        int_price = int(float(''.join(price.split(','))))
+        # Facebook expect price to be in cents
+        int_price_in_cents = int_price * 100
+        return int_price_in_cents
+
     @classmethod
-    def from_facebook_data(cls, facebook_data: dict):
-        def format_price(price: str):
-            price = price[1:]
-            return ''.join(price.split(','))
+    def from_facebook_data(cls, facebook_data: dict, merchant):
         model_fields = [field.name for field in cls._meta.fields]
         facebook_id = facebook_data.pop('id')
-        facebook_data['price'] = format_price(facebook_data.pop('price')) if 'price' in facebook_data else None
-        facebook_data['sale_price'] = format_price(facebook_data.pop('sale_price')) if 'sale_price' in facebook_data else None
-        if 'importer_name' in facebook_data:
-            print(facebook_data['importer_name'])
+        facebook_data['price'] = cls.format_price(facebook_data.pop('price')) if 'price' in facebook_data else None
+        facebook_data['sale_price'] = cls.format_price(facebook_data.pop('sale_price')) if 'sale_price' in facebook_data else None
         product_data = {key: value for key, value in facebook_data.items() if key in model_fields}
-        return cls(**product_data, facebook_id=facebook_id)
+        return cls(**product_data, facebook_id=facebook_id, merchant=merchant)
+
+    def to_facebook_representation(self):
+        data = self.__dict__.copy()
+        data.pop('id')
+        return data
