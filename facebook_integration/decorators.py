@@ -1,6 +1,6 @@
 
+from concurrent import futures
 import time
-import signal
 import functools
 
 
@@ -23,16 +23,12 @@ def timeout(seconds):
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            signal.signal(signal.SIGALRM, handle_timeout)
-            signal.alarm(seconds)
-            try:
-                result = func(*args, **kwargs)
-            finally:
-                signal.alarm(0)  # cancel the alarm signal
+            with futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(func, *args, **kwargs)
+                try:
+                    result = future.result(timeout=seconds)
+                except futures.TimeoutError:
+                    raise TimeoutError("Function took too long to response")
             return result
         return wrapper
     return decorator
-
-
-def handle_timeout(signum, frame):
-    raise TimeoutError("Function took too long to response")
