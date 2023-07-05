@@ -8,12 +8,12 @@ from services.paginations import CustomPageNumberPagination
 from services.utils import customize_response, exception_handler
 from services.constants import ErrorTypes
 from .permissions import IsProductOwner
-from .models import Product
-from .serializers import ProductSerializer
+from .models import MerchantProduct
+from .serializers import MerchantProductSerializer
 
 
 class MerchantProductsViewSet(ModelViewSet):
-    queryset = Product.objects.all()
+    queryset = MerchantProduct.objects.all()
     pagination_class = CustomPageNumberPagination
     lookup_field = 'id'
 
@@ -78,13 +78,13 @@ class MerchantProductsViewSet(ModelViewSet):
         return [permission() for permission in permissions]
 
     def get_serializer_class(self):
-        return ProductSerializer
+        return MerchantProductSerializer
 
     def get_queryset(self):
         if self.action == 'list':
-            merchant_products = Product.objects.merchant_products(merchant=self.request.user)
+            merchant_products = MerchantProduct.objects.merchant_products(merchant=self.request.user)
             return merchant_products.filter_from_query_params(request=self.request)
-        return Product.objects.all()
+        return MerchantProduct.objects.all()
 
     def get_serializer_context(self):
         if self.action == 'create':

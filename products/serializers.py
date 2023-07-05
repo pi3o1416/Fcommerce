@@ -1,15 +1,27 @@
 
 from django.db import transaction
 from django_countries.serializers import CountryFieldMixin
+from rest_framework.exceptions import ValidationError
 from rest_framework import serializers
 
-from .models import Product, MerchantProducts
+from .models import MerchantProduct
 
 
-class ProductSerializer(CountryFieldMixin, serializers.ModelSerializer):
+class MerchantProductSerializer(CountryFieldMixin, serializers.ModelSerializer):
+    retailer_id = serializers.CharField(required=False)
+    gtin = serializers.CharField(required=False)
+
     class Meta:
-        model = Product
-        fields = [field.name for field in Product._meta.fields if field.name not in ['facebook_id']]
+        model = MerchantProduct
+        fields = [field.name for field in MerchantProduct._meta.fields if field.name not in ['facebook_id']]
+        read_only_fields = ['merchant']
+
+    def validate_retailer_id(self, value):
+        if self.instance is not None and self.instance.retailer_id != value:
+            raise ValidationError("Retailer ID is uneditable")
+        if self.instance is None and MerchantProduct.objects.filter(retailer_id=value).exists():
+            raise ValidationError("Retailer ID already exist")
+        return value
 
     @transaction.atomic
     def create(self, validated_data: dict):
@@ -17,16 +29,6 @@ class ProductSerializer(CountryFieldMixin, serializers.ModelSerializer):
         Create a new product. use the new product to create a merchant product
         and return MerchantProducts instance
         """
-        product = Product.objects.create(**validated_data)
         merchant = self.context['request'].user
-        MerchantProducts.objects.create(
-            merchant=merchant,
-            product=product
-        )
-        return product
-
-
-class MerchantProductSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MerchantProducts
-        fields = '__all__'
+        merchant_product = MerchantProduct.objects.create(**validated_data, merchant=merchant)
+        return merchant_product
