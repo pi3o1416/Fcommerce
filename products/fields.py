@@ -33,7 +33,8 @@ class AddressJSONField(models.JSONField):
 
 class GTINField(models.CharField):
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('editable', False)
+        kwargs.setdefault('editable', True)
+        kwargs.setdefault('blank', True)
         super().__init__(*args, **kwargs)
 
     def pre_save(self, model_instance, add):
@@ -46,7 +47,8 @@ class GTINField(models.CharField):
 
 class RetailerIDField(models.CharField):
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('editable', False)
+        kwargs.setdefault('editable', True)
+        kwargs.setdefault('blank', True)
         super().__init__(*args, **kwargs)
 
     def pre_save(self, model_instance, add):
