@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'merchants.apps.MerchantsConfig',
     'products.apps.ProductsConfig',
     'facebook_integration.apps.FacebookIntegrationConfig',
+    'notifications.apps.NotificationsConfig',
 ]
 
 MIDDLEWARE = [
@@ -209,3 +210,6 @@ SHELL_PLUS_PYGMENTS_FORMATTER_KWARGS = {}
 
 # Fernet configuration
 FERNET_KEY = env('FERNET_KEY').encode()
+
+# Facebook API Version
+FACEBOOK_API_VERSION = 'v17.0'
