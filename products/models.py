@@ -30,7 +30,7 @@ class ProductManager(models.Manager):
             merchant_inventory = self.filter(merchant=merchant)
             facebook_products_data = facebook_adapter.get_catalog_items()
             if facebook_products_data is not None:
-                facebook_products = [self.model.from_facebook_data(product_data, merchant) for product_data in facebook_products_data]
+                facebook_products = [self.model(**product_data, merchant=merchant) for product_data in facebook_products_data]
                 inventory_products = self.model.objects.filter(id__in=merchant_inventory)
                 products_absent_on_facebook = set(inventory_products) - set(facebook_products)
                 products_absent_on_inventory = set(facebook_products) - set(inventory_products)
@@ -116,8 +116,10 @@ class MerchantProduct(models.Model):
         max_length=3,
         choices=AcceptedCurrency.choices
     )
-    price = models.IntegerField(
+    price = models.DecimalField(
         verbose_name=_('Price'),
+        max_digits=16,
+        decimal_places=2
     )
     retailer_id = RetailerIDField(
         verbose_name=_('Retailer ID'),
@@ -198,8 +200,10 @@ class MerchantProduct(models.Model):
         null=True,
         blank=True
     )
-    sale_price = models.IntegerField(
+    sale_price = models.DecimalField(
         verbose_name=_('Sale Price'),
+        max_digits=16,
+        decimal_places=2,
         null=True,
         blank=True
     )
@@ -284,26 +288,3 @@ class MerchantProduct(models.Model):
 
     def __hash__(self):
         return hash(self.retailer_id)
-
-    @staticmethod
-    def format_price(price: str):
-        price = price[1:]
-        # Update this price to Integre
-        int_price = int(float(''.join(price.split(','))))
-        # Facebook expect price to be in cents
-        int_price_in_cents = int_price * 100
-        return int_price_in_cents
-
-    @classmethod
-    def from_facebook_data(cls, facebook_data: dict, merchant):
-        model_fields = [field.name for field in cls._meta.fields]
-        facebook_id = facebook_data.pop('id')
-        facebook_data['price'] = cls.format_price(facebook_data.pop('price')) if 'price' in facebook_data else None
-        facebook_data['sale_price'] = cls.format_price(facebook_data.pop('sale_price')) if 'sale_price' in facebook_data else None
-        product_data = {key: value for key, value in facebook_data.items() if key in model_fields}
-        return cls(**product_data, facebook_id=facebook_id, merchant=merchant)
-
-    def to_facebook_representation(self):
-        data = self.__dict__.copy()
-        data.pop('id')
-        return data
