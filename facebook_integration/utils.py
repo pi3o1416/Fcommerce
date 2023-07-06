@@ -1,31 +1,19 @@
 
-from django.forms import model_to_dict
 import requests
+from decimal import Decimal
 
-from enum import Enum
 from .decorators import timeout, retry_on_connection_error
-from .exceptions import AddCatalogItemFailed, DeleteCatalogItemFailed
+from .exceptions import AddCatalogItemFailed, SyncBetweenMerchantAndFacebookFailed
+from .constants import PRODUCT_FIELDS, GraphAPIUrls
+from .logger import FacebookAPIErrorLogger
 
 
-class GraphAPIUrls(Enum):
-    OWNED_PRODUCT_CATALOGS = 'https://graph.facebook.com/v17.0/{business_id}/owned_product_catalogs'
-    OWNED_PAGES = 'https://graph.facebook.com/v17.0/{business_id}/owned_pages'
-    PRODUCT_CATALOGS_ITEMS = 'https://graph.facebook.com/v17.0/{catalog_id}/products'
-    CATALOG_ITEM_ADD = 'https://graph.facebook.com/v17.0/{catalog_id}/products'
-    CATALOG_ITEM_DELETE = 'https://graph.facebook.com/v17.0/{product_facebook_id}'
-    CATALOG_ITEM_UPDATE = 'https://graph.facebook.com/v17.0/{product_facebook_id}'
-    CATALOG_ITEM_READ = 'https://graph.facebook.com/v17.0/{product_facebook_id}'
-
-
-PRODUCT_FIELDS = ['name', 'description', 'url', 'image_url', 'currency', 'price', 'retailer_id', 'gtin',
-                  'condition', 'availability', 'brand', 'category', 'color', 'visibility', 'expiration_date',
-                  'additional_image_urls', 'additional_variant_attributes', 'start_date', 'size', 'short_description',
-                  'sale_price', 'sale_price_start_date', 'sale_price_end_date', 'product_type', 'pattern',
-                  'origin_country', 'material', 'importer_name', 'gender']
+logger = FacebookAPIErrorLogger('facebook_api_error_logger')
 
 
 class FacebookAdapter:
-    def __init__(self, access_token, business_id, catalog_id, page_id):
+    def __init__(self, merchant, access_token, business_id, catalog_id, page_id):
+        self.merchant = merchant
         self.access_token = access_token
         self.business_id = business_id
         self.catalog_id = catalog_id
@@ -34,7 +22,7 @@ class FacebookAdapter:
     @classmethod
     def merchant_facebook_adapter(cls, merchant):
         facebook_integration_data = merchant.facebook_info.decrypted_data()
-        return cls(**facebook_integration_data)
+        return cls(**facebook_integration_data, merchant=merchant)
 
     def generate_url(self, url_type: GraphAPIUrls, **kwargs):
         if url_type == GraphAPIUrls.OWNED_PRODUCT_CATALOGS:
@@ -81,7 +69,7 @@ class FacebookAdapter:
 
     @retry_on_connection_error(number_of_retry=5)
     @timeout(seconds=5)
-    def get_owned_catalogs(self):
+    def get_owned_catalogs(self, create_notification=True):
         url = self.generate_url(GraphAPIUrls.OWNED_PRODUCT_CATALOGS)
         response = self._make_get_request(url=url)
         if response.status_code == 200:
@@ -106,16 +94,19 @@ class FacebookAdapter:
             query_params={"fields": ','.join(query_fields)}
         )
         if response.status_code == 200:
-            return response.json()['data']
-        return {}
+            return self._format_facebook_product_data(response.json()['data'])
+        return None
 
     @retry_on_connection_error(number_of_retry=5)
-    @timeout(seconds=5)
+    @timeout(seconds=10)
     def add_catalog_item(self, product):
         response = self._make_post_request(
             url=self.generate_url(GraphAPIUrls.CATALOG_ITEM_ADD),
-            data=product.to_facebook_representation()
+            data=self._format_product_data_for_facebook(product=product)
         )
+        if response.status_code != 200:
+            logger.error(message="Product add failed", response=response, merchant_id=self.merchant.id)
+            raise AddCatalogItemFailed(response=response)
         return response
 
     def bulk_add_catalog_item(self, products):
@@ -123,25 +114,20 @@ class FacebookAdapter:
         try:
             for product in products:
                 response = self.add_catalog_item(product=product)
-                if response.status_code == 200:
-                    added_products[product.id] = {'facebook_id': response.json()['id']}
-                else:
-                    raise AddCatalogItemFailed()
+                added_products[product.id] = {'facebook_id': response.json()['id']}
             return added_products
-        except AddCatalogItemFailed:
-            finished = self._rollback_added_products(added_products=added_products)
-            return None
+        except AddCatalogItemFailed as exception:
+            logger.error(message="Inventory Sync Failed", response=exception.response, merchant_id=self.merchant.id)
+            self._rollback_added_products(added_products=added_products, exception_message=exception.__str__())
 
-    def _rollback_added_products(self, added_products):
+    def _rollback_added_products(self, added_products, exception_message=None):
         added_products_facebook_id = [product['facebook_id'] for product in added_products.values()]
         for facebook_id in added_products_facebook_id:
-            response = self.remove_catalog_item(facebook_id=facebook_id)
-            if response.status_code != 200:
-                raise DeleteCatalogItemFailed("Catalog Item Delete Failed")
-        return True
+            self.remove_catalog_item(facebook_id=facebook_id)
+        raise SyncBetweenMerchantAndFacebookFailed("Failed to sync facebook and merchant inventory. Exception: ", exception_message)
 
     @retry_on_connection_error(number_of_retry=5)
-    @timeout(seconds=5)
+    @timeout(seconds=10)
     def remove_catalog_item(self, facebook_id):
         url = self.generate_url(url_type=GraphAPIUrls.CATALOG_ITEM_DELETE, facebook_id=facebook_id)
         response = self._make_delete_request(url=url)
@@ -178,3 +164,43 @@ class FacebookAdapter:
             if self.page_id in owned_pages_id and self.catalog_id in owned_catalogs_id:
                 return True
         return False
+
+    @staticmethod
+    def _format_facebook_product_price(price):
+        if price is not None:
+            price = price[1:]
+            return ''.join(price.split(','))
+        return None
+
+    @staticmethod
+    def _format_inventory_product_price(price):
+        if price is not None:
+            decimal_price = Decimal(price) * Decimal('100')
+            return int(decimal_price)
+        return None
+
+    @staticmethod
+    def _format_facebook_product_data(facebook_product_data: dict):
+        """
+        Format Facebook data for future use
+        """
+        for product_data in facebook_product_data:
+            facebook_id = product_data.pop('id')
+            product_data['price'] = FacebookAdapter._format_facebook_product_price(product_data.get('price'))
+            product_data['sale_price'] = FacebookAdapter._format_facebook_product_price(product_data.get('sale_price'))
+            product_data['facebook_id'] = facebook_id
+        return facebook_product_data
+
+    @staticmethod
+    def _format_product_data_for_facebook(product):
+        """
+        Dictionary used to format product data on facebook graph api
+        """
+        product_data = product.__dict__.copy()
+        if 'facebook_id' in product_data:
+            product_data['id'] = product_data.pop('facebook_id')
+        else:
+            product_data.pop('id')
+        product_data['price'] = FacebookAdapter._format_inventory_product_price(product_data.get('price'))
+        product_data['sale_price'] = FacebookAdapter._format_inventory_product_price(product_data.get('sale_price'))
+        return product_data

@@ -48,6 +48,7 @@ class FacebookIntegrationData(DirtyFieldsMixin, models.Model):
 
     def save(self, *args, **kwargs):
         facebook_adapter = FacebookAdapter(
+            merchant=self.merchant,
             access_token=self.access_token,
             business_id=self.business_id,
             catalog_id=self.catalog_id,
