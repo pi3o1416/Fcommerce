@@ -1,20 +1,31 @@
 
 
-class AddCatalogItemFailed(Exception):
-    def __init__(self, response, *args, **kwargs):
+class FacebookAPIErrorException(Exception):
+    def __init__(self, message=None, response=None, *args, **kwargs):
         self.response = response
+        self.message = message
         super().__init__(*args, **kwargs)
 
 
-class SyncBetweenMerchantAndFacebookFailed(Exception):
-    def __init__(self, response, *args, **kwargs):
-        self.response = response
-        super().__init__(*args, **kwargs)
-
-
-class DeleteCatalogItemFailed(Exception):
+class AddCatalogItemFailed(FacebookAPIErrorException):
     pass
 
 
-class FacebookIntegrationIsNotComplete(Exception):
+class SyncBetweenMerchantAndFacebookFailed(FacebookAPIErrorException):
+    pass
+
+
+class DeleteCatalogItemFailed(FacebookAPIErrorException):
+    pass
+
+
+class UpdateCatalogItemFailed(FacebookAPIErrorException):
+    pass
+
+
+class FacebookIntegrationIsNotComplete(FacebookAPIErrorException):
+    pass
+
+
+class BulkProductAddFailed(FacebookAPIErrorException):
     pass
