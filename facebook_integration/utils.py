@@ -1,14 +1,14 @@
 
+import logging
 import requests
 from decimal import Decimal
 
-from .decorators import timeout, retry_on_connection_error
-from .exceptions import AddCatalogItemFailed, SyncBetweenMerchantAndFacebookFailed
+from .decorators import timeout, retry_on_connection_error, log_api_errors
+from .exceptions import AddCatalogItemFailed, BulkProductAddFailed, DeleteCatalogItemFailed, UpdateCatalogItemFailed
 from .constants import PRODUCT_FIELDS, GraphAPIUrls
-from .logger import FacebookAPIErrorLogger
 
 
-logger = FacebookAPIErrorLogger('facebook_api_error_logger')
+logger = logging.getLogger('facebook_api_error_logger')
 
 
 class FacebookAdapter:
@@ -67,8 +67,9 @@ class FacebookAdapter:
         response = requests.delete(url=url, params=params)
         return response
 
+    @log_api_errors
     @retry_on_connection_error(number_of_retry=5)
-    @timeout(seconds=5)
+    @timeout(seconds=10)
     def get_owned_catalogs(self, create_notification=True):
         url = self.generate_url(GraphAPIUrls.OWNED_PRODUCT_CATALOGS)
         response = self._make_get_request(url=url)
@@ -76,8 +77,9 @@ class FacebookAdapter:
             return response.json()
         return None
 
+    @log_api_errors
     @retry_on_connection_error(number_of_retry=5)
-    @timeout(seconds=5)
+    @timeout(seconds=10)
     def get_owned_pages(self):
         url = self.generate_url(GraphAPIUrls.OWNED_PAGES)
         response = self._make_get_request(url=url)
@@ -85,8 +87,9 @@ class FacebookAdapter:
             return response.json()
         return None
 
+    @log_api_errors
     @retry_on_connection_error(number_of_retry=5)
-    @timeout(seconds=5)
+    @timeout(seconds=10)
     def get_catalog_items(self, query_fields=None):
         query_fields = PRODUCT_FIELDS if query_fields is None else query_fields
         response = self._make_get_request(
@@ -97,6 +100,7 @@ class FacebookAdapter:
             return self._format_facebook_product_data(response.json()['data'])
         return None
 
+    @log_api_errors
     @retry_on_connection_error(number_of_retry=5)
     @timeout(seconds=10)
     def add_catalog_item(self, product):
@@ -105,10 +109,10 @@ class FacebookAdapter:
             data=self._format_product_data_for_facebook(product=product)
         )
         if response.status_code != 200:
-            logger.error(message="Product add failed", response=response, merchant_id=self.merchant.id)
             raise AddCatalogItemFailed(response=response)
         return response
 
+    @log_api_errors
     def bulk_add_catalog_item(self, products):
         added_products = {}
         try:
@@ -117,34 +121,40 @@ class FacebookAdapter:
                 added_products[product.id] = {'facebook_id': response.json()['id']}
             return added_products
         except AddCatalogItemFailed as exception:
-            logger.error(message="Inventory Sync Failed", response=exception.response, merchant_id=self.merchant.id)
             self._rollback_added_products(added_products=added_products, exception_message=exception.__str__())
+            raise BulkProductAddFailed(response=exception.response)
 
     def _rollback_added_products(self, added_products, exception_message=None):
         added_products_facebook_id = [product['facebook_id'] for product in added_products.values()]
         for facebook_id in added_products_facebook_id:
             self.remove_catalog_item(facebook_id=facebook_id)
-        raise SyncBetweenMerchantAndFacebookFailed("Failed to sync facebook and merchant inventory. Exception: ", exception_message)
 
+    @log_api_errors
     @retry_on_connection_error(number_of_retry=5)
     @timeout(seconds=10)
     def remove_catalog_item(self, facebook_id):
         url = self.generate_url(url_type=GraphAPIUrls.CATALOG_ITEM_DELETE, facebook_id=facebook_id)
         response = self._make_delete_request(url=url)
+        if response.status_code != 200:
+            raise DeleteCatalogItemFailed(response=response)
         return response
 
+    @log_api_errors
     @retry_on_connection_error(number_of_retry=5)
-    @timeout(seconds=5)
-    def update_catalog_item(self, facebook_id, data):
-        url = self.generate_url(url_type=GraphAPIUrls.CATALOG_ITEM_UPDATE, facebook_id=facebook_id)
-        response = self._make_put_request(
-            url=url,
-            data=data
+    @timeout(seconds=10)
+    def update_catalog_item(self, product):
+        response = self._make_post_request(
+            url=self.generate_url(url_type=GraphAPIUrls.CATALOG_ITEM_UPDATE, facebook_id=product.facebook_id),
+            data=self._format_product_data_for_facebook(product=product)
         )
+        print(response.json())
+        if response.status_code != 200:
+            raise UpdateCatalogItemFailed(response=response)
         return response
 
+    @log_api_errors
     @retry_on_connection_error(number_of_retry=5)
-    @timeout(seconds=5)
+    @timeout(seconds=10)
     def get_item_detail(self, facebook_id):
         url = self.generate_url(url_type=GraphAPIUrls.CATALOG_ITEM_READ, facebook_id=facebook_id)
         response = self._make_get_request(url=url)
@@ -153,8 +163,9 @@ class FacebookAdapter:
     def get_page_detail(self):
         pass
 
+    @log_api_errors
     @retry_on_connection_error(number_of_retry=5)
-    @timeout(seconds=5)
+    @timeout(seconds=10)
     def verify_info(self):
         owned_pages = self.get_owned_pages()
         owned_catalogs = self.get_owned_catalogs()
@@ -197,10 +208,7 @@ class FacebookAdapter:
         Dictionary used to format product data on facebook graph api
         """
         product_data = product.__dict__.copy()
-        if 'facebook_id' in product_data:
-            product_data['id'] = product_data.pop('facebook_id')
-        else:
-            product_data.pop('id')
+        product_data.pop('id')
         product_data['price'] = FacebookAdapter._format_inventory_product_price(product_data.get('price'))
         product_data['sale_price'] = FacebookAdapter._format_inventory_product_price(product_data.get('sale_price'))
         return product_data
