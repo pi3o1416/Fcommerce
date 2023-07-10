@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'facebook_integration.apps.FacebookIntegrationConfig',
     'notifications.apps.NotificationsConfig',
     'payment_gateway.apps.PaymentGatewayConfig',
+    'checkout.apps.CheckoutConfig',
 ]
 
 MIDDLEWARE = [
