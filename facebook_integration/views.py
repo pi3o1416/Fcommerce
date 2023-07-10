@@ -3,6 +3,8 @@ from django.http import Http404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.exceptions import ValidationError
+
+from products.tasks import sync_inventory_with_facebook
 from services.constants import ErrorTypes
 from services.paginations import CustomPageNumberPagination
 from services.utils import customize_response, exception_handler
@@ -26,6 +28,10 @@ class FacebookIntegrationModelViewSet(ModelViewSet):
                 message='Facebook Integration Failed',
                 error_type=ErrorTypes.FORM_FIELD_ERROR.value
             )
+
+    def perform_create(self, serializer):
+        super().perform_create(serializer=serializer)
+        sync_inventory_with_facebook.delay(self.request.user.id)
 
     def retrieve(self, request, *args, **kwargs):
         try:
