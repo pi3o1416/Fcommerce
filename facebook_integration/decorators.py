@@ -14,9 +14,10 @@ def retry_on_connection_error(number_of_retry):
                 try:
                     result = func(*args, **kwargs)
                     return result
-                except ConnectionError:
+                except (ConnectionError, TimeoutError) as exception:
                     time.sleep(2**i)
             raise ConnectionError(f"Failed to connect after {number_of_retry} retry")
+
         return wrapper
     return decorator
 
