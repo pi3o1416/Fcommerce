@@ -213,3 +213,42 @@ FERNET_KEY = env('FERNET_KEY').encode()
 
 # Facebook API Version
 FACEBOOK_API_VERSION = 'v17.0'
+
+# Log Settings
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'level': 'ERROR',
+            'class': 'logging.StreamHandler',
+            'formatter': 'console'
+        },
+        'facebook_api_handler': {
+            'class': 'graypy.GELFTCPHandler',
+            'host': '103.42.4.114',
+            'port': 12210,
+            'level': 'ERROR',
+            'formatter': 'graylog',
+        }
+    },
+    'loggers': {
+        'fcommerce': {
+            'handlers': ['console', 'facebook_api_handler'],
+            'level': 'ERROR',
+            'propagate': True
+        },
+    },
+    'formatters': {
+        'console': {
+            'format': '[{asctime}] [{levelname}] [{module}] {message}',
+            'style': '{',
+            'datefmt': '%d-%b-%Y %H:%M:%S UTC%z',
+        },
+        'graylog': {
+            'format': '{message}',
+            'style': '{',
+            'datefmt': '%d-%b-%Y %H:%M:%S UTC%z',
+        },
+    },
+}
