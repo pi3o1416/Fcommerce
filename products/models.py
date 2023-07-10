@@ -288,3 +288,33 @@ class MerchantProduct(models.Model):
 
     def __hash__(self):
         return hash(self.retailer_id)
+
+    def add_on_facebook(self):
+        merchant = self.merchant
+        if merchant.integrate_facebook is True:
+            facebook_adapter = FacebookAdapter.merchant_facebook_adapter(merchant=self.merchant)
+            response = facebook_adapter.add_catalog_item(product=self)
+            self.facebook_id = response.json()['id']
+            self.save()
+            return True
+        return False
+
+    def delete_on_facebook(self):
+        merchant = self.merchant
+        if merchant.integrate_facebook is True and self.facebook_id is not None:
+            facebook_adapter = FacebookAdapter.merchant_facebook_adapter(merchant=self.merchant)
+            facebook_adapter.remove_catalog_item(facebook_id=self.facebook_id)
+            return True
+        return False
+
+    def update_on_facebook(self):
+        merchant = self.merchant
+        if merchant.integrate_facebook is True and self.facebook_id is not None:
+            facebook_adapter = FacebookAdapter.merchant_facebook_adapter(merchant=self.merchant)
+            facebook_adapter.update_catalog_item(product=self)
+            return True
+        return False
+
+    def delete(self):
+        self.delete_on_facebook()
+        super().delete()
