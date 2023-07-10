@@ -30,9 +30,3 @@ def set_merchant_integration_status_false(sender, instance: FacebookIntegrationD
     merchant = instance.merchant
     merchant.integrate_facebook = False
     merchant.save()
-
-
-@receiver(signal=post_save, sender=FacebookIntegrationData)
-def sync_inventory_with_facebook_on_integration(sender, instance: FacebookIntegrationData, created, **kwargs):
-    if created:
-        sync_inventory_with_facebook.delay(instance.merchant_id)
