@@ -22,8 +22,8 @@ class ProductTest(TestCase):
             "merchant": merchant,
             "name": "Test Product",
             "description": "Test Product Description",
-            "url": "www.example.com",
-            "image_url": "www.example.com/image.png",
+            "url": "https://www.example.com",
+            "image_url": "https://www.example.com/image.png",
             "currency": "BDT",
             "price": "123",
         }
@@ -49,8 +49,11 @@ class ProductTest(TestCase):
     @classmethod
     def create_product(cls, product_data):
         try:
-            product = MerchantProduct.objects.create(**product_data)
-            return product
+            product = MerchantProduct(**product_data)
+            errors = product.full_clean()
+            if errors is None:
+                product.save()
+                return product
         except Exception:
             return None
 
