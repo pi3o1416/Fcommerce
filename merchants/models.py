@@ -99,6 +99,11 @@ class Merchant(DirtyFieldsMixin, AbstractBaseUser, PermissionsMixin):
         unique=True,
         max_length=200,
     )
+    signature_key = models.CharField(
+        verbose_name=_('Signature Key'),
+        unique=True,
+        max_length=500
+    )
     integrate_facebook = models.BooleanField(
         verbose_name=_('Integrate Facebook'),
         default=False
@@ -123,7 +128,7 @@ class Merchant(DirtyFieldsMixin, AbstractBaseUser, PermissionsMixin):
     _password = None
     objects = MerchantManager()
     USERNAME_FIELD = "merchant_id"
-    REQUIRED_FIELDS = ['name']
+    REQUIRED_FIELDS = ['name', 'signature_key']
 
     class Meta:
         verbose_name = _("merchant")
