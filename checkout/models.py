@@ -79,8 +79,18 @@ class Order(models.Model):
         choices=PaymentStatus.choices,
         default=PaymentStatus.INITIATED
     )
-    pg_response = models.JSONField(
-        verbose_name=_('PG-Response'),
+    pg_transaction_id = models.CharField(
+        max_length=500,
         null=True,
-        blank=True,
+        blank=True
     )
+
+    @property
+    def total_amount(self):
+        total_amount = 0
+        for product in self.products.all():
+            if product.sale_price is not None:
+                total_amount += product.sale_price
+            else:
+                total_amount += product.price
+        return total_amount
