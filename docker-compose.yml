@@ -32,6 +32,7 @@ services:
       dockerfile: Dockerfile
     entrypoint: ./entrypoint.sh
     restart: always
+    user: "0:0"
     env_file:
       - dev.env
     ports:

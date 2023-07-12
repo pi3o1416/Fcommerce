@@ -15,4 +15,4 @@ python manage.py migrate --noinput
 echo "Starting server"
 
 #python manage.py remove_stale_contenttypes --noinput
-hypercorn tms.wsgi:application --workers 1 --bind 0.0.0.0:8000
+hypercorn core.wsgi:application --workers 1 --bind 0.0.0.0:8000
