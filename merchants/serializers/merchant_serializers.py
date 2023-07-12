@@ -23,7 +23,7 @@ class MerchantCreateSerializer(PasswordValidationMixin, serializers.ModelSeriali
 
     class Meta:
         model = Merchant
-        fields = ['id', 'name', 'merchant_id', 'password', 'retype_password', 'is_published', 'integrate_facebook']
+        fields = ['id', 'name', 'merchant_id', 'signature_key', 'password', 'retype_password', 'is_published', 'integrate_facebook']
         read_only_fields = ['id']
         extra_kwargs = {
             'is_published': {'read_only': True},
