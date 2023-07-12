@@ -124,6 +124,18 @@ class Merchant(DirtyFieldsMixin, AbstractBaseUser, PermissionsMixin):
         verbose_name=_("active"),
         default=True,
     )
+    success_url = models.URLField(
+        verbose_name=_('Success URL'),
+        default='https://www.aamarpay.com'
+    )
+    failed_url = models.URLField(
+        verbose_name=_('Failed URL'),
+        default='https://www.aamarpay.com'
+    )
+    cancel_url = models.URLField(
+        verbose_name=_('Cancel URL'),
+        default='https://www.aamarpay.com'
+    )
 
     _password = None
     objects = MerchantManager()
