@@ -1,4 +1,5 @@
 
+import uuid
 from django.test import TestCase
 from ..serializers import MerchantCreateSerializer, MerchantUpdateSerializer
 
@@ -8,6 +9,7 @@ class TestMerchantCreateSerializer(TestCase):
         self.merchant_create_data = {
             "name": "testmerchant",
             "merchant_id": "testmerchant",
+            "signature_key": uuid.uuid4().hex,
             "password": "testtestap1",
             "retype_password": "testtestap1"
         }

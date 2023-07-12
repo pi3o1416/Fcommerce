@@ -1,4 +1,5 @@
 
+import uuid
 from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 from django.test import TestCase
@@ -10,6 +11,7 @@ class TestMerchant(TestCase):
         self.merchant_data = {
             "name": "fcommerce",
             "merchant_id": "fcommerce",
+            "signature_key": uuid.uuid4().hex,
             "password": "testtestap1"
         }
         Merchant.objects.create(**self.merchant_data)
@@ -26,6 +28,7 @@ class TestMerchant(TestCase):
         merchant_data = self.merchant_data.copy()
         merchant_data['name'] = 'newfcommerce2'
         merchant_data['merchant_id'] = 'newfcommerce2'
+        merchant_data['signature_key'] = uuid.uuid4().hex
         merchant = Merchant.objects.create_user(**merchant_data)
         self.assertFalse(merchant.is_staff, 'Merchant staff status should be false')
         self.assertFalse(merchant.is_superuser, 'Merchant superuser status should be false')
@@ -34,6 +37,7 @@ class TestMerchant(TestCase):
         merchant_data = self.merchant_data.copy()
         merchant_data['name'] = 'newfcommerce'
         merchant_data['merchant_id'] = 'newfcommerce'
+        merchant_data['signature_key'] = uuid.uuid4().hex
         merchant = Merchant.objects.create_superuser(**merchant_data)
         self.assertTrue(merchant.is_staff, 'Merchant staff status should be True')
         self.assertTrue(merchant.is_superuser, 'Merchant superuser status should be True')
@@ -43,6 +47,7 @@ class TestMerchant(TestCase):
         try:
             new_merchant_data = self.merchant_data.copy()
             new_merchant_data['merchant_id'] = 'fcommerce_new'
+            new_merchant_data['signature_key'] = uuid.uuid4().hex
             Merchant.objects.create(**new_merchant_data)
             created = True
         except IntegrityError:
@@ -55,6 +60,7 @@ class TestMerchant(TestCase):
         try:
             new_merchant_data = self.merchant_data.copy()
             new_merchant_data['name'] = 'fcommerce_new'
+            new_merchant_data['signature_key'] = uuid.uuid4().hex
             Merchant.objects.create(**new_merchant_data)
             created = True
         except IntegrityError:
@@ -100,7 +106,8 @@ class TestMerchant(TestCase):
         merchant_data = {
             "name": "newmerchant",
             "merchant_id": "newmerchant",
-            "password": "testtestap1"
+            "password": "testtestap1",
+            "signature_key": uuid.uuid4().hex
         }
         merchant = Merchant.objects.create(**merchant_data)
         self.assertNotEqual(merchant_data['password'], merchant.password, 'Merchant Password should be hashed on pre save.')

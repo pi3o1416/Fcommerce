@@ -1,4 +1,5 @@
 
+import uuid
 from urllib.parse import urlencode
 from django.test import TestCase
 from django.test import Client
@@ -15,16 +16,19 @@ class MerchantViewSetTest(TestCase):
                 'name': 'testmerchant1',
                 'merchant_id': 'testmerchant1',
                 'password': 'testpassword1',
+                'signature_key': uuid.uuid4().hex,
                 'is_staff': True,
             },
             {
                 'name': 'testmerchant2',
                 'merchant_id': 'testmerchant2',
+                'signature_key': uuid.uuid4().hex,
                 'password': 'testpassword2',
             },
             {
                 'name': 'testmerchant3',
                 'merchant_id': 'testmerchant3',
+                'signature_key': uuid.uuid4().hex,
                 'password': 'testpassword3'
             }
         ]
@@ -99,6 +103,7 @@ class MerchantViewSetTest(TestCase):
         merchant_data = self.merchants_data[0].copy()
         merchant_data['name'] = 'testmerchant4'
         merchant_data['merchant_id'] = 'testmerchant4'
+        merchant_data['signature_key'] = uuid.uuid4().hex
         merchant_data['retype_password'] = merchant_data['password']
         response = self.get_create_view_response(data=merchant_data, access_token=self.access_token)
         self.assertEqual(response.status_code, 201, 'Merchant Status status code should be 201')
@@ -107,6 +112,7 @@ class MerchantViewSetTest(TestCase):
     def test_create_view_duplicate_merchant_id(self):
         merchant_data = self.merchants_data[0].copy()
         merchant_data['name'] = 'testmerchant5'
+        merchant_data['signature_key'] = uuid.uuid4().hex
         response = self.get_create_view_response(data=merchant_data, access_token=self.access_token)
         self.assertEqual(response.status_code, 400, 'Merchant create status code should be 400 for duplicate merchant_id')
         self.assertTrue('merchant_id' in response.data['detail'], 'merchant_id should be in Error data')
@@ -114,6 +120,7 @@ class MerchantViewSetTest(TestCase):
     def test_create_view_duplicate_name(self):
         merchant_data = self.merchants_data[0].copy()
         merchant_data['merchant_id'] = 'testmerchant5'
+        merchant_data['signature_key'] = uuid.uuid4().hex
         response = self.get_create_view_response(data=merchant_data, access_token=self.access_token)
         self.assertEqual(response.status_code, 400, 'Merchant create status code should be 400 for duplicate name')
         self.assertTrue('name' in response.data['detail'], 'name should be in Error data')
@@ -144,6 +151,7 @@ class MerchantViewSetTest(TestCase):
             'name': 'testmerchant10',
             'merchant_id': 'testmerchant10',
             'password': 'merchant10merchant10',
+            'signature_key': uuid.uuid4().hex,
             'retype_password': 'merchant10merchant10'
         }
         response = self.get_create_view_response(data=merchant_data, access_token=self.access_token)
