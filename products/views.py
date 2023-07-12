@@ -1,10 +1,12 @@
 
 from django.http import Http404
+from django.contrib.auth import get_user_model
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework import status
 
 from services.paginations import CustomPageNumberPagination
@@ -14,6 +16,9 @@ from .permissions import IsProductOwner
 from .models import MerchantProduct
 from .serializers import MerchantProductSerializer
 from .tasks import add_product_on_facebook, delete_product, sync_inventory_with_facebook, update_product_on_facebook
+
+
+Merchant = get_user_model()
 
 
 class MerchantProductsViewSet(ModelViewSet):
@@ -97,9 +102,11 @@ class MerchantProductsViewSet(ModelViewSet):
         return customize_response(response, 'A Sync process is in Progress')
 
     def get_permissions(self):
-        permissions = [IsAuthenticated]
-        if self.action in ['retrieve', 'update', 'destroy']:
-            permissions += [IsProductOwner]
+        permissions = []
+        if self.action in ['update', 'destroy']:
+            permissions += [IsAuthenticated, IsProductOwner]
+        if self.action in ['retrieve']:
+            permissions += [AllowAny]
         return [permission() for permission in permissions]
 
     def get_serializer_class(self):
@@ -118,3 +125,16 @@ class MerchantProductsViewSet(ModelViewSet):
             }
         else:
             return super().get_serializer_context()
+
+
+class CustomerMerchantProducts(APIView, CustomPageNumberPagination):
+    queryset = MerchantProduct.objects.all()
+    permission_classes = [AllowAny]
+    serializer_class = MerchantProductSerializer
+
+    def get(self, request, merchant_name):
+        merchant = Merchant.objects.get(name=merchant_name)
+        merchant_products = MerchantProduct.objects.filter(merchant=merchant).filter_from_query_params(request=request)
+        paginated_queryset = self.paginate_queryset(queryset=merchant_products, request=request)
+        serializer = self.serializer_class(instance=paginated_queryset, many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
