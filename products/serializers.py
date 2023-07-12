@@ -32,3 +32,9 @@ class MerchantProductSerializer(CountryFieldMixin, serializers.ModelSerializer):
         merchant = self.context['request'].user
         merchant_product = MerchantProduct.objects.create(**validated_data, merchant=merchant)
         return merchant_product
+
+
+class MerchantProductMinimalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MerchantProduct
+        fields = ['name', 'url', 'image_url', 'currency', 'price', 'retailer_id', 'gtin']
