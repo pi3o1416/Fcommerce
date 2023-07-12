@@ -53,10 +53,16 @@ class ProductManager(models.Manager):
     def merchant_products(self, merchant):
         return self.get_queryset().merchant_products(merchant=merchant)
 
+    def products_merchants(self):
+        return self.get_queryset().products_merchants()
+
 
 class ProductQuerySet(TemplateQuerySet):
     def merchant_products(self, merchant):
         return self.filter(merchant=merchant)
+
+    def products_merchants(self):
+        return self.values_list('merchant', flat=True)
 
 
 class MerchantProduct(models.Model):
