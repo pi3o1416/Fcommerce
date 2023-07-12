@@ -24,3 +24,17 @@ services:
       - "5480:80"
     volumes:
       - /home/docker-storage/fcommerce_pgadmin:/var/lib/pgadmin
+
+  fcommerce_web:
+    container_name: fcommerce_web
+    build:
+      context: .
+      dockerfile: Dockerfile
+    entrypoint: ./entrypoint.sh
+    restart: always
+    env_file:
+      - dev.env
+    ports:
+      - "127.0.0.1:8001:8000"
+
+
