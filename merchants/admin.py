@@ -6,11 +6,11 @@ from .models import Merchant
 
 @admin.register(Merchant)
 class MerchantAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'merchant_id', 'integrate_facebook', 'is_published', 'is_staff',
+    list_display = ['id', 'name', 'merchant_id', 'signature_key', 'integrate_facebook', 'is_published', 'is_staff',
                     'is_superuser', 'is_active', 'created_at']
 
     fieldsets = (
-        (_("Merchant info"), {"fields": ("name", "merchant_id", "password")}),
+        (_("Merchant info"), {"fields": ("name", "merchant_id", "signature_key", "password")}),
         (_("Shop Management"), {"fields": ("is_published", "integrate_facebook")}),
         (_("Important dates"), {"fields": ("last_login",)}),
         (_("Permissions"), {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
@@ -19,7 +19,7 @@ class MerchantAdmin(admin.ModelAdmin):
         (None,
             {
                 "classes": ("wide",),
-                "fields": ("name", "merchant_id", "password"),
+                "fields": ("name", "merchant_id", "signature_key", "password"),
             },
          ),
     )
