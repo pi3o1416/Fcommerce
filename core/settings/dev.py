@@ -8,3 +8,8 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_TASK_TIME_LIMIT = 60
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_BROKER_URL = 'redis://localhost:6379/'
+
+# PG Settings
+
+PG_PAYMENT_INITIATE_URL = 'https://sandbox.aamarpay.com/jsonpost.php'
+TRXN_DETAIL_URL = 'https://secure.aamarpay.com/api/v1/trxcheck/request.php'
