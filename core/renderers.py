@@ -14,9 +14,9 @@ class CustomJSONRenderer(JSONRenderer):
         custom_data["status"] = response.status_code
         if response.status_code >= 400:
             custom_data['message'] = data['message'] if 'message' in data else ''
-            custom_data['error'] = data['detail'] if 'detail' in data else ''
+            custom_data['error'] = data['detail'] if 'detail' in data else data
             custom_data['error-type'] = data['error_type'] if 'error_type' in data else ''
         else:
             custom_data['message'] = data['message'] if 'message' in data else ''
-            custom_data['data'] = data['detail'] if 'detail' in data else ''
+            custom_data['data'] = data['detail'] if 'detail' in data else data
         return super().render(custom_data, accepted_media_type, renderer_context)
