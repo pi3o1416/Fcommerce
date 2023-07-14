@@ -1,6 +1,6 @@
 
 from django.http import Http404
-from django.db.models.deletion import RestrictedError
+from django_filters import rest_framework as filters
 from rest_framework import status
 from rest_framework.viewsets import ModelViewSet, ViewSet
 from rest_framework.exceptions import ValidationError
@@ -13,14 +13,17 @@ from services.paginations import CustomPageNumberPagination
 from services.utils import exception_handler, customize_response
 from ..exceptions import MerchantDeleteException
 from ..models import Merchant
+from ..filters import MerchantFilter
 from ..serializers import MerchantCreateSerializer, MerchantDetailSerializer, MerchantUpdateSerializer, MerchantPasswordChangeSerializer
 
 
 class MerchantModelViewSet(ModelViewSet):
     model = Merchant
-    queryset = Merchant.objects.all()
     lookup_field = 'id'
+    queryset = Merchant.objects.all()
     pagination_class = CustomPageNumberPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = MerchantFilter
     permission_classes = [IsAdminUser]
 
     def create(self, request, *args, **kwargs):
