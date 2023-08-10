@@ -10,9 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
 import pygments.formatters
 from datetime import timedelta
 from environ import Env
+from . import BASE_DIR
 
 env = Env()
 
@@ -86,21 +88,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env('DB_NAME'),
-        'USER': env('DB_USER'),
-        'PASSWORD': env('DB_PASS'),
-        'HOST': env('DB_HOST'),
-        'PORT': env('DB_PORT')
-    }
-}
-
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
@@ -136,6 +123,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'public/static')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -229,17 +217,10 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'console'
         },
-        'facebook_api_handler': {
-            'class': 'graypy.GELFTCPHandler',
-            'host': '103.42.4.114',
-            'port': 12210,
-            'level': 'ERROR',
-            'formatter': 'graylog',
-        }
     },
     'loggers': {
         'fcommerce': {
-            'handlers': ['console', 'facebook_api_handler'],
+            'handlers': ['console'],
             'level': 'ERROR',
             'propagate': True
         },
@@ -247,11 +228,6 @@ LOGGING = {
     'formatters': {
         'console': {
             'format': '[{asctime}] [{levelname}] [{module}] {message}',
-            'style': '{',
-            'datefmt': '%d-%b-%Y %H:%M:%S UTC%z',
-        },
-        'graylog': {
-            'format': '{message}',
             'style': '{',
             'datefmt': '%d-%b-%Y %H:%M:%S UTC%z',
         },
