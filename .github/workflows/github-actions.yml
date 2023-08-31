@@ -60,5 +60,4 @@ jobs:
                       cd django/fcommerce/
                       git pull origin development --rebase
                       chmod +x deployment/*
-                      docker-compose build
-                      docker-compose up -d
+                      ./deployment/deployscript

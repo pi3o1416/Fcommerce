@@ -2,17 +2,17 @@
 # Fcommerce: Empowering Businesses Online  
 
 ## Table of Contents
-- [Table of Contents](#-table-of-contents)
-- [Overview](#-overview)
-- [Features](#-features)
-- [Live Demo and Documentation](#-live-demo-and-documentation)
-- [Installation](#-installation)
-- [Usage](#-usage)
-    - [With Facebook Page](#-with-facebook-page)
-    - [Without Facebook Page](#-without-facebook-page)
-- [Contributing](#-contributing)
-- [License](#-license)
-- [Acknowledgments](#-acknowledgments)
+- [Table of Contents](#table-of-contents)
+- [Overview](#overview)
+- [Features](#features)
+- [Live Demo and Documentation](#live-demo-and-documentation)
+- [Installation](#installation)
+- [Usage](#usage)
+    - [With Facebook Page](#with-facebook-page)
+    - [Without Facebook Page](#without-facebook-page)
+- [Contributing](#contributing)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
 
 
 ## Overview
