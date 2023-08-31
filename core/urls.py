@@ -19,6 +19,7 @@ from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 urlpatterns = [
+    path('', include('homepage.urls')),
     path('admin/', admin.site.urls),
     path('merchants/', include('merchants.urls')),
     path('products/', include('products.urls')),

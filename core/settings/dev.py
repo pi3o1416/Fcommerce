@@ -1,6 +1,22 @@
 
 from .base import *
 
+# Database
+# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': env('DEV_DB_NAME'),
+        'USER': env('DEV_DB_USER'),
+        'PASSWORD': env('DEV_DB_PASS'),
+        'HOST': env('DEV_DB_HOST'),
+        'PORT': env('DEV_DB_PORT')
+    }
+}
+
+# Celery Settings
+
 CELERY_TIMEZONE = "Asia/Dhaka"
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
