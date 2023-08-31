@@ -1,0 +1,64 @@
+name: Fcommerce CI/CD
+
+on:
+    push:
+        branches:
+            - development
+
+jobs:
+    build:
+        name: Build
+        runs-on: ubuntu-latest
+        services:
+            postgres:
+                image: postgres:14.5
+                env:
+                    POSTGRES_USER: postgres
+                    POSTGRES_PASSWORD: temppass
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+                ports:
+                    - 5432:5432
+        steps:
+            - uses: actions/checkout@v2
+            - name: Set up Python 3.9
+              uses: actions/setup-python@v2
+              with:
+                  python-version: 3.9
+            - name: Install Dependencies
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install -r requirements.txt
+            - name: Check Code Quality
+              run: |
+                  pip install flake8
+                  flake8 .
+            - name: Run Test
+              env:
+                  DEBUG: 'True'
+                  IS_PRODUCTION_SERVER: 'True'
+                  SECRET_KEY: testsecretkey
+                  PROD_DB_HOST: 127.0.0.1
+                  PROD_DB_PORT: 5432
+                  PROD_DB_USER: postgres
+                  PROD_DB_PASS: temppass
+                  PROD_DB_NAME: test_db
+                  FERNET_KEY: testfernetkey
+              run: |
+                  python manage.py test
+            - name: Deploy to live server
+              uses: appleboy/ssh-action@v1.0.0
+              with:
+                  host: ${{ secrets.HOST }}
+                  username: ${{ secrets.USERNAME }}
+                  password: ${{ secrets.PASSWORD }}
+                  port: ${{ secrets.PORT }}
+                  script: |
+                      cd django/fcommerce/
+                      git pull origin development --rebase
+                      chmod +x deployment/*
+                      docker-compose build
+                      docker-compose up -d

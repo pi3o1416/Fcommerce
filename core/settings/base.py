@@ -25,7 +25,7 @@ env = Env()
 SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env('DEBUG')
+DEBUG = eval(env('DEBUG'))
 
 ALLOWED_HOSTS = []
 
@@ -125,7 +125,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'public/static')
+MEDIA_URL = 'media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -219,17 +221,10 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'console'
         },
-        'facebook_api_handler': {
-            'class': 'graypy.GELFTCPHandler',
-            'host': '103.42.4.114',
-            'port': 12210,
-            'level': 'ERROR',
-            'formatter': 'graylog',
-        }
     },
     'loggers': {
         'fcommerce': {
-            'handlers': ['console', 'facebook_api_handler'],
+            'handlers': ['console'],
             'level': 'ERROR',
             'propagate': True
         },
@@ -237,11 +232,6 @@ LOGGING = {
     'formatters': {
         'console': {
             'format': '[{asctime}] [{levelname}] [{module}] {message}',
-            'style': '{',
-            'datefmt': '%d-%b-%Y %H:%M:%S UTC%z',
-        },
-        'graylog': {
-            'format': '{message}',
             'style': '{',
             'datefmt': '%d-%b-%Y %H:%M:%S UTC%z',
         },

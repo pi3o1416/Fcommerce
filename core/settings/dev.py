@@ -1,6 +1,9 @@
 
 from .base import *
 
+
+ALLOWED_HOSTS = ['127.0.0.1']
+
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
@@ -28,4 +31,4 @@ CELERY_BROKER_URL = 'redis://localhost:6379/'
 # PG Settings
 
 PG_PAYMENT_INITIATE_URL = 'https://sandbox.aamarpay.com/jsonpost.php'
-TRXN_DETAIL_URL = 'https://secure.aamarpay.com/api/v1/trxcheck/request.php'
+TRXN_DETAIL_URL = 'https://sandbox.aamarpay.com/api/v1/trxcheck/request.php'

@@ -1,3 +1,4 @@
+
 version: "3"
 
 networks:
@@ -16,53 +17,40 @@ services:
             dockerfile: Dockerfile
         command: ./deployment/start-app
         networks:
-            - app-tier-fcommerce
             - external_network
+            - app-tier-fcommerce
         env_file:
             - .env
         ports:
-            - "127.0.0.1:8001:8000"
-
+            - "127.0.0.1:8002:8000"
+        volumes:
+            - .:/app
+            - /home/docker-storage/fcommerce/public/static:/app/public/static
+            - /home/docker-storage/fcommerce/media:/app/media
     fcommerce_redis:
+        container_name: fcommerce_redis
         image: redis:alpine
         restart: always
         read_only: false
-        container_name: fcommerce_redis
-        command: redis-server --port 6390 --appendonly yes
+        command: redis-server --replica-read-only no
         networks:
-            - app-tier-fcommerce
-            - external_network
-
+          - app-tier-fcommerce
+          - external_network
     fcommerce_celery:
         container_name: fcommerce_celery
         build:
-            context: .
-            dockerfile: Dockerfile
+          context: .
+          dockerfile: Dockerfile
         restart: always
         command: ./deployment/start-celery
-        depends_on:
-            - fcommerce_redis
-        volumes:
-            - .:/app
         env_file:
-            - .env
+          - .env
+        depends_on:
+          - fcommerce_redis
+        volumes:
+          - .:/app
+          - /home/docker-storage/fcommerce/public/static:/app/public/static
+          - /home/docker-storage/fcommerce/media:/app/media
         networks:
-            - app-tier-fcommerce
-            - external_network
-              #    
-              #    fcommerce_celery_flower:
-              #        container_name: fcommerce_celery_flower
-              #        build:
-              #            context: .
-              #            dockerfile: Dockerfile
-              #        env_file:
-              #            - .env
-              #        restart: always
-              #        volumes:
-              #            - .:/app
-              #        ports:
-              #            - "127.0.0.1:5555:5555"
-              #        command: celery -A core flower --address=0.0.0.0 --port=5555
-              #        networks:
-              #            - app-tier-fcommerce
-
+          - app-tier-fcommerce
+          - external_network

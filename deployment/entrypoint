@@ -13,12 +13,14 @@ import sys
 import psycopg2
 
 try:
-    pgdb = psycopg2.connect(
+    with psycopg2.connect(
         host='${PROD_DB_HOST}',
+        dbname='${PROD_DB_NAME}',
         user='${PROD_DB_USER}',
         password='${PROD_DB_PASS}',
         port='${PROD_DB_PORT}'
-    )
+    ) as dbconnection:
+        pass
 except psycopg2.OperationalError:
     print('Break in DB connection on deployment')
     sys.exit(-1)

@@ -9,6 +9,7 @@ COPY requirements.txt /app/requirements.txt
 RUN pip3 install -r requirements.txt
 
 COPY . /app/
+COPY deployment/* /app/deployment/
 RUN sed -i 's/\r$//g' /app/deployment/*
 RUN chmod +x /app/deployment/*
 
